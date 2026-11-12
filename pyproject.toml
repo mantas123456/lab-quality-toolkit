@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "labqc"
+version = "0.1.0"
+description = "Laboratory quality calculations: GUM uncertainty budgets, method validation, proficiency-test scores, Westgard rules and flue-gas emission conversions"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Mantas Valantinavičius" }]
+license = { text = "MIT" }
+keywords = ["metrology", "uncertainty", "ISO 17025", "quality control", "Westgard", "emissions"]
+dependencies = ["numpy>=1.26", "pandas>=2.1", "scipy>=1.11"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.5", "matplotlib>=3.8"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
