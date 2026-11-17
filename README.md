@@ -109,6 +109,11 @@ ruff check .
 - This is a calculation aid, not validated software for regulated use. Check results
   against your own procedures.
 
+## How this was built
+
+I designed the analysis and checked the results. I used Claude Code as
+a coding assistant.
+
 ---
 Mantas Valantinavičius · measurement scientist, 14 years in ISO/IEC 17025 testing ·
 [github.com/mantas123456](https://github.com/mantas123456)
