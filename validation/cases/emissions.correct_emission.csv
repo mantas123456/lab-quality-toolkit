@@ -1,0 +1,3 @@
+case,inputs,output,expected,tolerance,tolerance_type,source_type,source,working
+CO 310 ppm at 12.8 % O2,"{""value"":310,""gas"":""CO"",""unit"":""ppm"",""o2_measured"":12.8,""o2_ref"":10,""limit"":500}",mg_m3_ref,521.311030253,1e-09,rel,hand calculation from the cited formula,"molar volume 22.414 L/mol at 273.15 K, 101.325 kPa; molar mass from IUPAC atomic weights; O2 correction as above",310 x 28.010 / 22.414 x 10.9 / 8.1
+% of limit,"{""value"":310,""gas"":""CO"",""unit"":""ppm"",""o2_measured"":12.8,""o2_ref"":10,""limit"":500}",percent_of_limit,104.262206051,1e-09,rel,hand calculation from the cited formula,100 x C / limit,"as above, / 500 x 100"

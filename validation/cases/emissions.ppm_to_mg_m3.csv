@@ -1,0 +1,3 @@
+case,inputs,output,expected,tolerance,tolerance_type,source_type,source,working
+CO 100 ppm,"{""ppm"":100,""gas"":""CO""}",mg_m3,124.96653877,1e-09,rel,hand calculation from the cited formula,"molar volume 22.414 L/mol at 273.15 K, 101.325 kPa; molar mass from IUPAC atomic weights",100 x 28.010 / 22.414
+NO2 50 ppm,"{""ppm"":50,""gas"":""NO2""}",mg_m3,102.627821897,1e-09,rel,hand calculation from the cited formula,"molar volume 22.414 L/mol at 273.15 K, 101.325 kPa; molar mass from IUPAC atomic weights; NOx as NO2",50 x 46.006 / 22.414

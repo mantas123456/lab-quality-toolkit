@@ -1,0 +1,2 @@
+case,inputs,output,expected,tolerance,tolerance_type,source_type,source,working
+u = 1 (4 dof) and u = 1 (inf),"{""components"":[{""value"":1,""dof"":4},{""value"":1}]}",v_eff,16.0,1e-09,rel,hand calculation from the cited formula,JCGM 100:2008 (GUM) G.4.1 eq. (G.2b),(1 + 1)^2 / (1^4 / 4) = 16

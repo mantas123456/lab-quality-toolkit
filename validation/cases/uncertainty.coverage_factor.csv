@@ -1,0 +1,6 @@
+case,inputs,output,expected,tolerance,tolerance_type,source_type,source,working
+"t, dof 4, p 0.95","{""dof"":4,""coverage"":0.95}",k,2.78,0.005,abs,standard table,JCGM 100:2008 (GUM) Table G.2 (Student's t),table value to 2 decimals
+"t, dof 10, p 0.95","{""dof"":10,""coverage"":0.95}",k,2.23,0.005,abs,standard table,JCGM 100:2008 (GUM) Table G.2 (Student's t),table value to 2 decimals
+"t, dof 16, p 0.95","{""dof"":16,""coverage"":0.95}",k,2.12,0.005,abs,standard table,JCGM 100:2008 (GUM) Table G.2 (Student's t),table value to 2 decimals
+"t, dof inf, p 0.95","{""dof"":""inf"",""coverage"":0.95}",k,1.96,0.005,abs,standard table,JCGM 100:2008 (GUM) Table G.2 (Student's t),table value to 2 decimals
+"t, dof 16, p 0.99","{""dof"":16,""coverage"":0.99}",k,2.92,0.005,abs,standard table,JCGM 100:2008 (GUM) Table G.2 (Student's t),table value to 2 decimals

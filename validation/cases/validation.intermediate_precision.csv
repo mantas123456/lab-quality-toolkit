@@ -1,0 +1,5 @@
+case,inputs,output,expected,tolerance,tolerance_type,source_type,source,working
+MS between,"{""groups"":{""A"":[102,100,101],""B"":[101,101,104],""C"":[97,95,99],""D"":[90,92,94]}}",ms_between,62.0,1e-09,rel,published example,"Miller & Miller, Statistics and Chemometrics for Analytical Chemistry, one-way ANOVA example",book: between-sample mean square 62
+MS within,"{""groups"":{""A"":[102,100,101],""B"":[101,101,104],""C"":[97,95,99],""D"":[90,92,94]}}",ms_within,3.0,1e-09,rel,published example,"Miller & Miller, Statistics and Chemometrics for Analytical Chemistry, one-way ANOVA example",book: within-sample mean square 3
+repeatability SD,"{""groups"":{""A"":[102,100,101],""B"":[101,101,104],""C"":[97,95,99],""D"":[90,92,94]}}",sd_repeatability,1.73205080757,1e-09,rel,hand calculation from the cited formula,ISO 5725-2 7.4 (s_r^2 = MS_within),sqrt(3)
+between-group SD,"{""groups"":{""A"":[102,100,101],""B"":[101,101,104],""C"":[97,95,99],""D"":[90,92,94]}}",sd_between,4.43471156522,1e-09,rel,hand calculation from the cited formula,ISO 5725-2 7.4 ((MS_between - MS_within) / n),sqrt((62 - 3) / 3)

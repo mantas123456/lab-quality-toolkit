@@ -374,8 +374,8 @@ def to_pdf(record: RunRecord, path: PathOrFile) -> None:
     story += [
         Spacer(1, 6 * mm),
         p(
-            f"Calculated with labqc {record.labqc_version}. A calculation aid, not validated "
-            "software: check results against your own procedures."
+            f"Calculated with labqc {record.labqc_version}, validated against published and "
+            "hand-calculated reference cases. Validate it for your own use (ISO/IEC 17025 7.11)."
         ),
     ]
     SimpleDocTemplate(

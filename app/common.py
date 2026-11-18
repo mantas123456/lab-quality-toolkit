@@ -113,6 +113,6 @@ def report_button(make) -> None:
 
 def footer() -> None:
     st.caption(
-        f"labqc {labqc.__version__} · a calculation aid, not validated software: "
-        "check results against your own procedures."
+        f"labqc {labqc.__version__} · validated against reference cases; "
+        "validate it for your own use before you report results."
     )

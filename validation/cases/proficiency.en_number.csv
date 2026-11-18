@@ -1,0 +1,2 @@
+case,inputs,output,expected,tolerance,tolerance_type,source_type,source,working
+En,"{""x"":10.6,""assigned"":10.0,""U_x"":0.6,""U_assigned"":0.8}",en,0.6,1e-09,rel,hand calculation from the cited formula,ISO 13528:2022 9.7 (E_n),0.6 / sqrt(0.36 + 0.64)

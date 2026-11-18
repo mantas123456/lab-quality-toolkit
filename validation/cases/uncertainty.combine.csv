@@ -1,0 +1,6 @@
+case,inputs,output,expected,tolerance,tolerance_type,source_type,source,working
+root sum of squares,"{""components"":[{""value"":3},{""value"":4}],""k"":2}",u_c,5.0,1e-09,rel,hand calculation from the cited formula,JCGM 100:2008 (GUM) 5.1.2 eq. (10),sqrt(3^2 + 4^2)
+expanded with k = 2,"{""components"":[{""value"":3},{""value"":4}],""k"":2}",U,10.0,1e-09,rel,hand calculation from the cited formula,JCGM 100:2008 (GUM) 6.2.1,U = k u_c = 2 x 5
+k from v_eff = 16,"{""components"":[{""value"":1,""dof"":4},{""value"":1}]}",k,2.12,0.005,abs,standard table,JCGM 100:2008 (GUM) G.4.1 and Table G.2,"v_eff = 16, t(95 %, 16) = 2.12"
+"fully correlated, r = +1","{""components"":[{""name"":""a"",""value"":3},{""name"":""b"",""value"":4}],""correlation"":[[""a"",""b"",1.0]]}",u_c,7.0,1e-09,rel,hand calculation from the cited formula,JCGM 100:2008 (GUM) 5.2.2 note 1,r = 1 and c_i = 1: u_c = 3 + 4
+"fully anti-correlated, r = -1","{""components"":[{""name"":""a"",""value"":3},{""name"":""b"",""value"":4}],""correlation"":[[""a"",""b"",-1.0]]}",u_c,1.0,1e-09,rel,hand calculation from the cited formula,JCGM 100:2008 (GUM) 5.2.2 eq. (16),u_c^2 = 9 + 16 - 2 x 3 x 4 = 1

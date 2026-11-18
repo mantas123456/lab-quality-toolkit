@@ -1,0 +1,2 @@
+case,inputs,output,expected,tolerance,tolerance_type,source_type,source,working
+spike recovery,"{""measured"":14.5,""unspiked"":5.0,""added"":10.0}",percent,95.0,1e-09,rel,hand calculation from the cited formula,"Eurachem guide, recovery",100 x (14.5 - 5.0) / 10.0

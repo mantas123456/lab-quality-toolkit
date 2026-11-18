@@ -1,0 +1,5 @@
+case,inputs,output,expected,tolerance,tolerance_type,source_type,source,working
+t statistic,"{""results"":[50.4,50.7,49.1,49.0,51.1],""crm_value"":50,""crm_u"":0.2}",t,0.14,0.005,abs,published example,"Miller & Miller, Statistics and Chemometrics for Analytical Chemistry, comparison of a mean with a known value","book: mean 50.06, s = 0.956, t = 0.14"
+mean,"{""results"":[50.4,50.7,49.1,49.0,51.1],""crm_value"":50,""crm_u"":0.2}",mean,50.06,1e-09,rel,published example,"Miller & Miller, Statistics and Chemometrics for Analytical Chemistry, comparison of a mean with a known value",250.3 / 5
+expanded uncertainty of the bias,"{""results"":[50.4,50.7,49.1,49.0,51.1],""crm_value"":50,""crm_u"":0.2}",U_bias,0.943610088967,1e-09,rel,hand calculation from the cited formula,ERM Application Note 1 (U_bias = 2 sqrt(u_m^2 + u_CRM^2)),2 sqrt(0.9555^2 / 5 + 0.2^2)
+passes,"{""results"":[50.4,50.7,49.1,49.0,51.1],""crm_value"":50,""crm_u"":0.2}",passed,true,,,hand calculation from the cited formula,ERM Application Note 1 (|bias| <= U_bias),|0.06| <= 0.944

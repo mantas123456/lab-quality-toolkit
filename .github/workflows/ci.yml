@@ -29,3 +29,22 @@ jobs:
           python examples/westgard_iqc.py
           python examples/boiler_emissions.py
           python examples/monte_carlo_vs_gum.py
+
+  validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: pip
+      - name: Install
+        run: pip install -e .
+      - name: Run reference cases (fails on any failed case)
+        run: python validation/run_validation.py
+      - name: Keep the validation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-report
+          path: validation/report.md

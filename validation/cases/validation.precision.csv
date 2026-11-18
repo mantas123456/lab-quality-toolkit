@@ -1,0 +1,4 @@
+case,inputs,output,expected,tolerance,tolerance_type,source_type,source,working
+mean,"{""values"":[10,10,10,12]}",mean,10.5,1e-09,rel,hand calculation from the cited formula,"Eurachem guide, precision",42 / 4
+sd,"{""values"":[10,10,10,12]}",sd,1.0,1e-09,rel,hand calculation from the cited formula,"Eurachem guide, precision",sqrt((3 x 0.25 + 2.25) / 3)
+rsd_percent,"{""values"":[10,10,10,12]}",rsd_percent,9.52380952381,1e-09,rel,hand calculation from the cited formula,"Eurachem guide, precision",100 x 1 / 10.5

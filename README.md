@@ -193,6 +193,29 @@ to_excel([record], "records.xlsx")
 Each record keeps the inputs, settings, result, method, labqc version and UTC time, so a
 result can be traced and recalculated later.
 
+## Validation
+
+labqc 1.0 is checked against **91 reference cases** for 32 functions, each with an acceptance
+tolerance and a source: published worked examples (GUM Supplement 1, Miller & Miller,
+Montgomery), standard tables (GUM Table G.2), the cited formula evaluated by hand (GUM, ICH Q2,
+ISO 13528, ISO 5725-2, emission formulas) or the definition of a rule (Westgard, Nelson).
+Expected values never come from labqc itself.
+
+```bash
+python validation/run_validation.py   # writes validation/report.md, exit code 1 on any fail
+```
+
+- [`validation/report.md`](https://github.com/mantas123456/lab-quality-toolkit/blob/main/validation/report.md):
+  every case with expected value, result, tolerance, pass/fail, labqc and Python version and
+  date. CI runs it on every push, and a release is published only if every case passes.
+- [`validation/cases/`](https://github.com/mantas123456/lab-quality-toolkit/tree/main/validation/cases):
+  one CSV per function with inputs, reference value, tolerance, source and working.
+- [`validation/TO_CHECK.md`](https://github.com/mantas123456/lab-quality-toolkit/blob/main/validation/TO_CHECK.md):
+  sources still to confirm and cases still to add (for example an ISO 13528 Algorithm A
+  example for `robust_mean_sd`).
+- [Change control](https://mantas123456.github.io/lab-quality-toolkit/change_control/): how a
+  change is made, tested, validated and released, and what was re-validated in each release.
+
 ## Use it
 
 ```bash
@@ -243,8 +266,9 @@ Releases: push a tag `v*` (for example `v0.4.0`) that matches the version in
   freedom. Welch–Satterthwaite is applied as for independent inputs, even when correlations
   are given.
 - Units are stored on each component but not checked.
-- This is a calculation aid, not validated software for regulated use. Check results
-  against your own procedures.
+- labqc is validated against the reference cases above. A laboratory that uses it for
+  reported results must still validate it for its own intended use (ISO/IEC 17025 7.11.2)
+  and record the labqc version with each result.
 
 ## How this was built
 

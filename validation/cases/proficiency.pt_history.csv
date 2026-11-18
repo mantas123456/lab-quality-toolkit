@@ -1,0 +1,3 @@
+case,inputs,output,expected,tolerance,tolerance_type,source_type,source,working
+two |z| > 2 in a row,"{""z"":[0.3,-0.5,2.4,-2.2,0.1,0.4,0.8,0.2,1.1,0.6,0.3,0.9,0.5,-3.1]}",two_beyond_2_rounds,[4],,,rule definition,two successive questionable signals (2_2s idea applied to PT rounds),rounds 3 and 4 (1-based) are 2.4 and -2.2: flag on round 4
+nine on one side,"{""z"":[0.3,-0.5,2.4,-2.2,0.1,0.4,0.8,0.2,1.1,0.6,0.3,0.9,0.5,-3.1]}",trend_9_rounds,[13],,,rule definition,"Nelson, J. Qual. Technol. 16 (1984) 237, rule 2",rounds 5-13 are all > 0

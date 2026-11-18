@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.0.0 – validated release
+
+### Added
+- `validation/`: 91 reference cases for 32 functions in one CSV per function (inputs,
+  reference value, tolerance, source type, source and working), and `run_validation.py`, which
+  runs them and writes `validation/report.md` (expected, got, tolerance, pass/fail, labqc and
+  Python versions, git commit, date). Functions without a reference case are listed in the
+  report; open source questions are in `validation/TO_CHECK.md`.
+- CI job `validation` fails on any failed case and keeps the report as an artifact; the release
+  workflow runs the validation before publishing.
+- Documentation: Validation report page and a Change control page (process and release table).
+
+### Changed
+- Version 1.0.0. The README "Scope and limits" now points to the validation and to the
+  laboratory's own validation for its intended use.
+
 ## 0.6.0 – reports and records
 
 ### Added

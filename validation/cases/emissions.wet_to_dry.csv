@@ -1,0 +1,2 @@
+case,inputs,output,expected,tolerance,tolerance_type,source_type,source,working
+10 % water,"{""concentration_wet"":90,""water_vol_fraction"":0.1}",dry,100.0,1e-09,rel,hand calculation from the cited formula,dry basis: C_wet / (1 - h_w),90 / 0.9

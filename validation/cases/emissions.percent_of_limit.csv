@@ -1,0 +1,2 @@
+case,inputs,output,expected,tolerance,tolerance_type,source_type,source,working
+50 of 200,"{""value"":50,""limit"":200}",percent,25.0,1e-09,rel,hand calculation from the cited formula,100 x C / limit,100 x 50 / 200

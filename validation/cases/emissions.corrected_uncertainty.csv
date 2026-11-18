@@ -1,0 +1,2 @@
+case,inputs,output,expected,tolerance,tolerance_type,source_type,source,working
+u of 500 mg/m3 at 13 % O2,"{""concentration"":500,""u_concentration"":10,""o2_measured"":13,""u_o2"":0.2,""o2_ref"":10}",u_c,22.2576187198,1e-06,rel,hand calculation from the cited formula,JCGM 100:2008 (GUM) 5.1.2 eq. (10) on the O2 correction,"c_C = 10.9 / 7.9, c_O2 = 500 x 10.9 / 7.9^2; u_c = sqrt((c_C 10)^2 + (c_O2 0.2)^2)"

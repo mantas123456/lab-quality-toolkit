@@ -1,0 +1,2 @@
+case,inputs,output,expected,tolerance,tolerance_type,source_type,source,working
+500 at 13 % to 10 %,"{""concentration"":500,""o2_measured"":13,""o2_ref"":10}",c_ref,689.873417722,1e-09,rel,hand calculation from the cited formula,"O2 reference correction (EN 303-5 practice): C (20.9 - O2_ref) / (20.9 - O2_meas), 20.9 % O2 in dry air",500 x (20.9 - 10) / (20.9 - 13)

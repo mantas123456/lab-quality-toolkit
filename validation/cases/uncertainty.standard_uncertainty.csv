@@ -1,0 +1,5 @@
+case,inputs,output,expected,tolerance,tolerance_type,source_type,source,working
+rectangular,"{""value"":0.1,""distribution"":""rectangular""}",u,0.057735026919,1e-09,rel,hand calculation from the cited formula,JCGM 100:2008 (GUM) 4.3.7,u = a / sqrt(3) = 0.1 / 1.7320508
+triangular,"{""value"":0.6,""distribution"":""triangular""}",u,0.244948974278,1e-09,rel,hand calculation from the cited formula,JCGM 100:2008 (GUM) 4.3.9,u = a / sqrt(6)
+"normal, expanded with k = 2","{""value"":0.2,""distribution"":""normal"",""k"":2}",u,0.1,1e-09,rel,hand calculation from the cited formula,JCGM 100:2008 (GUM) 4.3.3,u = U / k = 0.2 / 2
+u-shaped (arcsine),"{""value"":0.1,""distribution"":""u-shaped""}",u,0.0707106781187,1e-09,rel,hand calculation from the cited formula,"JCGM 101:2008 (GUM Supplement 1), arcsine distribution",u = a / sqrt(2) (variance a^2 / 2)

@@ -1,0 +1,4 @@
+case,inputs,output,expected,tolerance,tolerance_type,source_type,source,working
+moving range SD,"{""values"":[10,12,10,12],""method"":""moving_range""}",sd,1.77304964539,1e-09,rel,hand calculation from the cited formula,"Montgomery, Introduction to Statistical Quality Control, individuals chart (d2 = 1.128 for n = 2)",mean moving range 2 / 1.128
+sample SD,"{""values"":[1,2,3,4,5],""method"":""sd""}",sd,1.58113883008,1e-09,rel,hand calculation from the cited formula,sample standard deviation (n - 1),sqrt(10 / 4)
+centre,"{""values"":[10,12,10,12],""method"":""sd""}",centre,11.0,1e-09,rel,hand calculation from the cited formula,mean of the baseline,44 / 4

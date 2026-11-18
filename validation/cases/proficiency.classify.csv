@@ -1,0 +1,9 @@
+case,inputs,output,expected,tolerance,tolerance_type,source_type,source,working
+z = 1.9,"{""score"":1.9,""kind"":""z""}",label,"""satisfactory""",,,rule definition,ISO 13528:2022 9.4.2 and 9.7.2 (action and warning signals),"|z| <= 2 satisfactory, < 3 questionable; |En| <= 1 satisfactory"
+z = 2.0,"{""score"":2.0,""kind"":""z""}",label,"""satisfactory""",,,rule definition,ISO 13528:2022 9.4.2 and 9.7.2 (action and warning signals),"|z| <= 2 satisfactory, < 3 questionable; |En| <= 1 satisfactory"
+z = -2.5,"{""score"":-2.5,""kind"":""z""}",label,"""questionable""",,,rule definition,ISO 13528:2022 9.4.2 and 9.7.2 (action and warning signals),"|z| <= 2 satisfactory, < 3 questionable; |En| <= 1 satisfactory"
+z = 3.0,"{""score"":3.0,""kind"":""z""}",label,"""unsatisfactory""",,,rule definition,ISO 13528:2022 9.4.2 and 9.7.2 (action and warning signals),"|z| <= 2 satisfactory, < 3 questionable; |En| <= 1 satisfactory"
+z = -3.5,"{""score"":-3.5,""kind"":""z""}",label,"""unsatisfactory""",,,rule definition,ISO 13528:2022 9.4.2 and 9.7.2 (action and warning signals),"|z| <= 2 satisfactory, < 3 questionable; |En| <= 1 satisfactory"
+en = 0.9,"{""score"":0.9,""kind"":""en""}",label,"""satisfactory""",,,rule definition,ISO 13528:2022 9.4.2 and 9.7.2 (action and warning signals),"|z| <= 2 satisfactory, < 3 questionable; |En| <= 1 satisfactory"
+en = 1.0,"{""score"":1.0,""kind"":""en""}",label,"""satisfactory""",,,rule definition,ISO 13528:2022 9.4.2 and 9.7.2 (action and warning signals),"|z| <= 2 satisfactory, < 3 questionable; |En| <= 1 satisfactory"
+en = -1.2,"{""score"":-1.2,""kind"":""en""}",label,"""unsatisfactory""",,,rule definition,ISO 13528:2022 9.4.2 and 9.7.2 (action and warning signals),"|z| <= 2 satisfactory, < 3 questionable; |En| <= 1 satisfactory"

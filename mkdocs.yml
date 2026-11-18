@@ -36,6 +36,8 @@ nav:
       - emissions: api/emissions.md
       - report: api/report.md
   - Worked examples: examples.md
+  - Validation report: validation.md
+  - Change control: change_control.md
   - Changelog: changelog.md
 
 markdown_extensions:

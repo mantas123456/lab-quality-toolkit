@@ -59,7 +59,8 @@ st.markdown(
     "[Source on GitHub](https://github.com/mantas123456/lab-quality-toolkit)"
 )
 st.info(
-    "A calculation aid, not validated software for regulated use. "
-    f"This app runs labqc {labqc.__version__}."
+    f"This app runs labqc {labqc.__version__}, checked against published and hand-calculated "
+    "reference cases ([validation report](https://mantas123456.github.io/lab-quality-toolkit/"
+    "validation/)). Before you report results, validate it for your own use."
 )
 footer()
