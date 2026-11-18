@@ -13,7 +13,7 @@ R_4s  reject    consecutive results differ by more than 4 SD, one above +2 SD an
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 
 import numpy as np
@@ -77,4 +77,139 @@ def westgard(values: Sequence[float], limits: Limits) -> pd.DataFrame:
     out = pd.DataFrame({"value": x, "z": z.round(3), **rules})
     reject = out[list(REJECT_RULES)].any(axis=1)
     out["status"] = np.where(reject, "reject", np.where(out["1_2s"], "warning", "accept"))
+    return out
+
+
+def _same_side(window: np.ndarray, threshold: float) -> bool:
+    return bool(window.size) and bool((window > threshold).all() or (window < -threshold).all())
+
+
+def westgard_levels(
+    values: Mapping[str, Sequence[float]], limits: Mapping[str, Limits]
+) -> pd.DataFrame:
+    """Westgard multirules across two or three control materials run together.
+
+    `values` maps each control level (e.g. "low", "high") to its results,
+    one per run; `limits` gives each level its own centre and SD. Rules use
+    z-scores, so levels with different concentrations can be compared.
+
+    Two levels: 1_3s, 2_2s (both levels in one run, or one level in two
+    runs), R_4s (one level above +2 SD and the other below -2 SD in one run),
+    4_1s (two runs x two levels, or one level over four runs), 10_x (five
+    runs x two levels, or one level over ten runs).
+
+    Three levels: 1_3s, 2of3_2s (two of the three in one run beyond 2 SD on
+    the same side), R_4s, 3_1s (all three in one run, or one level over three
+    runs), 12_x (four runs x three levels, or one level over twelve runs).
+
+    Returns one row per run: z per level, one boolean column per rule and a
+    status ("accept", "warning" for 1_2s only, or "reject"), like `westgard`.
+    """
+    names = list(values)
+    if len(names) not in (2, 3):
+        raise ValueError("westgard_levels needs two or three control levels")
+    if set(limits) != set(names):
+        raise ValueError("limits must have one entry per control level")
+    lengths = {len(values[n]) for n in names}
+    if len(lengths) != 1:
+        raise ValueError("every level needs one result per run")
+    z = np.column_stack(
+        [(np.asarray(values[n], dtype=float) - limits[n].centre) / limits[n].sd for n in names]
+    )
+    runs, levels = z.shape
+
+    def across(threshold: float, count: int) -> np.ndarray:
+        """`count` consecutive results beyond threshold on one side, across levels
+        (the last count / levels runs together) or within one level over runs."""
+        span = count // levels
+        hit = np.zeros(runs, dtype=bool)
+        for i in range(runs):
+            if i + 1 >= span and _same_side(z[i + 1 - span : i + 1].ravel(), threshold):
+                hit[i] = True
+            elif i + 1 >= count and any(
+                _same_side(z[i + 1 - count : i + 1, j], threshold) for j in range(levels)
+            ):
+                hit[i] = True
+        return hit
+
+    rules: dict[str, np.ndarray] = {
+        "1_2s": (np.abs(z) > 2).any(axis=1),
+        "1_3s": (np.abs(z) > 3).any(axis=1),
+    }
+    if levels == 2:
+        rules["2_2s"] = across(2, 2)
+    else:
+        rules["2of3_2s"] = ((z > 2).sum(axis=1) >= 2) | ((z < -2).sum(axis=1) >= 2)
+    rules["R_4s"] = (z.max(axis=1) > 2) & (z.min(axis=1) < -2)
+    if levels == 2:
+        rules["4_1s"] = across(1, 4)
+        rules["10_x"] = across(0, 10)
+    else:
+        rules["3_1s"] = across(1, 3)
+        rules["12_x"] = across(0, 12)
+
+    out = pd.DataFrame({f"z_{n}": z[:, j].round(3) for j, n in enumerate(names)})
+    for rule, hit in rules.items():
+        out[rule] = hit
+    reject = out[[r for r in rules if r != "1_2s"]].any(axis=1)
+    out["status"] = np.where(reject, "reject", np.where(out["1_2s"], "warning", "accept"))
+    return out
+
+
+def cusum(
+    values: Sequence[float], target: float, sd: float, k: float = 0.5, h: float = 5.0
+) -> pd.DataFrame:
+    """Tabular CUSUM in SD units (Montgomery, Introduction to Statistical Quality Control).
+
+    C+_i = max(0, z_i - k + C+_{i-1}) and C-_i = max(0, -z_i - k + C-_{i-1}),
+    with z = (x - target) / sd. A signal when either exceeds h. k = 0.5 and
+    h = 5 detect a 1 SD shift quickly; smaller shifts than Westgard catches.
+
+    Columns: value, z, c_plus, c_minus, signal_high, signal_low, signal.
+    """
+    x = np.asarray(values, dtype=float)
+    z = (x - target) / sd
+    c_plus = np.zeros(x.size)
+    c_minus = np.zeros(x.size)
+    up = down = 0.0
+    for i, zi in enumerate(z):
+        up = max(0.0, zi - k + up)
+        down = max(0.0, -zi - k + down)
+        c_plus[i], c_minus[i] = up, down
+    out = pd.DataFrame(
+        {
+            "value": x,
+            "z": z,
+            "c_plus": c_plus,
+            "c_minus": c_minus,
+            "signal_high": c_plus > h,
+            "signal_low": c_minus > h,
+        }
+    )
+    out["signal"] = out["signal_high"] | out["signal_low"]
+    return out
+
+
+def ewma(
+    values: Sequence[float], target: float, sd: float, lam: float = 0.2, L: float = 3.0
+) -> pd.DataFrame:
+    """EWMA chart (Montgomery, Introduction to Statistical Quality Control).
+
+    ewma_i = lam * x_i + (1 - lam) * ewma_{i-1}, starting at the target, with
+    exact limits target +/- L * sd * sqrt(lam / (2 - lam) * (1 - (1 - lam)^(2i))).
+
+    Columns: value, ewma, lcl, ucl, signal.
+    """
+    if not 0 < lam <= 1:
+        raise ValueError("lam must be in (0, 1]")
+    x = np.asarray(values, dtype=float)
+    smoothed = np.zeros(x.size)
+    prev = target
+    for i, xi in enumerate(x):
+        prev = lam * xi + (1 - lam) * prev
+        smoothed[i] = prev
+    i = np.arange(1, x.size + 1)
+    width = L * sd * np.sqrt(lam / (2 - lam) * (1 - (1 - lam) ** (2 * i)))
+    out = pd.DataFrame({"value": x, "ewma": smoothed, "lcl": target - width, "ucl": target + width})
+    out["signal"] = (out["ewma"] > out["ucl"]) | (out["ewma"] < out["lcl"])
     return out

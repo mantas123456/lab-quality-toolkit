@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.3.0 – fuller lab methods
+
+### Added
+- `validation`: weighted calibration lines (`weights="1/x"`, `"1/x^2"` or explicit weights
+  such as 1/s²); `lack_of_fit()` F-test from replicate standards, also reported in
+  `Linearity.lack_of_fit`; `Linearity.weighted_residuals`; `intermediate_precision()` by
+  one-way ANOVA (repeatability, between-group and intermediate SD); `trueness()` against a
+  CRM with bias, one-sample t-test and the ERM Application Note 1 pass/fail criterion.
+- `proficiency`: `pt_history()` reviews z-scores across rounds and flags two |z| > 2 in a row
+  and nine rounds on one side of zero.
+- `control_charts`: `westgard_levels()` for two or three control materials per run
+  (2_2s, 2of3_2s, R_4s, 4_1s, 3_1s, 10_x, 12_x across levels and runs); tabular `cusum()`;
+  `ewma()` with exact limits.
+- `emissions`: `register_gas()` for gases not in the built-in table;
+  `corrected_uncertainty()` propagates u(C) and u(O₂) through the reference-O₂ correction.
+- Tests reproduce textbook worked examples: Miller & Miller (weighted regression, one-way
+  ANOVA, t-test against a known value) and Montgomery (tabular CUSUM, EWMA).
+
+### Changed
+- `linearity()` now fits with its own weighted least-squares code instead of
+  `scipy.stats.linregress`; unweighted results are unchanged.
+
 ## 0.2.0 – better uncertainty
 
 ### Added

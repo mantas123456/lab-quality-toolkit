@@ -8,12 +8,12 @@ written as small, tested Python functions:
 | Module | What it covers | Reference |
 |---|---|---|
 | `uncertainty` | GUM uncertainty budgets: Type A and B components, sensitivity coefficients (analytic or numerical), correlated inputs, Welch–Satterthwaite degrees of freedom, coverage factor, relative uncertainty; Monte Carlo propagation | JCGM 100:2008 (GUM), JCGM 101:2008 (GUM S1) |
-| `validation` | Calibration linearity with confidence intervals, LOD/LOQ, precision (RSD), spike recovery | ICH Q2, Eurachem guide |
-| `proficiency` | z, zeta and E<sub>n</sub> scores with interpretation; robust consensus mean (Algorithm A) | ISO 13528, ISO/IEC 17043 |
-| `control_charts` | Shewhart limits; Westgard rules 1<sub>2s</sub>, 1<sub>3s</sub>, 2<sub>2s</sub>, R<sub>4s</sub>, 4<sub>1s</sub>, 10<sub>x</sub> | Westgard multirule QC |
-| `emissions` | ppm ↔ mg/m³ at standard conditions, correction to reference O₂, wet ↔ dry | Stack-emission practice, e.g. EN 303-5 at 10 % O₂ |
+| `validation` | Calibration linearity (ordinary or weighted) with confidence intervals and lack-of-fit test, LOD/LOQ, precision (RSD), intermediate precision by ANOVA, spike recovery, trueness against a CRM | ICH Q2, Eurachem guide, ERM Application Note 1 |
+| `proficiency` | z, zeta and E<sub>n</sub> scores with interpretation; robust consensus mean (Algorithm A); z-score history across rounds | ISO 13528, ISO/IEC 17043 |
+| `control_charts` | Shewhart limits; Westgard rules 1<sub>2s</sub>, 1<sub>3s</sub>, 2<sub>2s</sub>, R<sub>4s</sub>, 4<sub>1s</sub>, 10<sub>x</sub>, also across two or three control levels; CUSUM and EWMA charts | Westgard multirule QC; Montgomery, *Introduction to Statistical Quality Control* |
+| `emissions` | ppm ↔ mg/m³ at standard conditions, correction to reference O₂ and its uncertainty, wet ↔ dry, user-defined gases | Stack-emission practice, e.g. EN 303-5 at 10 % O₂ |
 
-Every function is tested against hand-calculated or published values (46 tests), and the examples below
+Every function is tested against hand-calculated values or textbook worked examples (58 tests), and the examples below
 run in CI.
 
 ## Example 1: uncertainty of a moisture determination
@@ -104,6 +104,38 @@ y, r = propagate(lambda a, b: a - b, {"a": 5.0, "b": 2.0}, inputs, correlation={
 print(r.summary(relative=True))  # u_c, k, U and u_c/|y|, U/|y|
 print(monte_carlo(lambda a, b: a / b, {"a": 5.0, "b": 2.0}, inputs, seed=1))
 ```
+
+## New in 0.3: lab methods
+
+```python
+import pandas as pd
+from labqc.validation import intermediate_precision, linearity, trueness
+from labqc.emissions import corrected_uncertainty
+
+# weighted calibration with duplicate standards: lack-of-fit test included
+cal = linearity(
+    [1, 1, 2, 2, 5, 5, 10, 10], [0.11, 0.10, 0.21, 0.19, 0.52, 0.49, 1.08, 0.97], weights="1/x"
+)
+print(cal.lack_of_fit.p_value)  # 0.90: a straight line is adequate
+
+# three days x three replicates: repeatability 0.100, intermediate precision 0.224
+days = pd.DataFrame(
+    {
+        "day": [1, 1, 1, 2, 2, 2, 3, 3, 3],
+        "value": [10.1, 10.3, 10.2, 10.6, 10.4, 10.5, 10.0, 10.2, 10.1],
+    }
+)
+ip = intermediate_precision(days, "value", "day")
+
+# five results on a CRM certified at 50 with u = 0.2
+print(trueness([50.4, 50.7, 49.1, 49.0, 51.1], crm_value=50, crm_u=0.2).passed)  # True
+
+# CO from Example 3 with u(C) = 8 mg/m3 and u(O2) = 0.2 %: 521 ± 34 mg/m3 (k = 2)
+c_ref, r = corrected_uncertainty(387.4, 8, o2_measured=12.8, u_o2=0.2, k=2)
+```
+
+`pt_history()` reviews a lab's z-scores across PT rounds, and `westgard_levels()`, `cusum()`
+and `ewma()` cover two- and three-level QC and small shifts that Westgard rules miss.
 
 ## Use it
 

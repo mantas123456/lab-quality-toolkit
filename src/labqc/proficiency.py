@@ -13,6 +13,7 @@ from __future__ import annotations
 import math
 
 import numpy as np
+import pandas as pd
 
 
 def z_score(x: float, assigned: float, sigma_pt: float) -> float:
@@ -54,3 +55,40 @@ def robust_mean_sd(values, tol: float = 1e-6, max_iter: int = 100) -> tuple[floa
             return new_mean, new_sd
         mean, sd = new_mean, new_sd
     return mean, sd
+
+
+def pt_history(df: pd.DataFrame, date_col: str = "date", z_col: str = "z") -> pd.DataFrame:
+    """Review z-scores across PT rounds, one row per round, oldest first.
+
+    Control-chart rules applied to a laboratory's z-scores over time:
+
+    two_beyond_2  |z| > 2 in this round and the one before (any side): a
+                  repeated questionable result needs action even though each
+                  round alone is only questionable.
+    trend_9       nine rounds in a row on the same side of zero (Nelson's
+                  rule 2): a persistent bias, even when every score is small.
+
+    Columns: date, z, classification (as `classify`), the two flags, and
+    action (True if either flag or the round itself is unsatisfactory).
+    """
+    data = df[[date_col, z_col]].dropna().sort_values(date_col).reset_index(drop=True)
+    z = data[z_col].to_numpy(dtype=float)
+    beyond = np.abs(z) > 2
+    two = beyond & np.concatenate([[False], beyond[:-1]])
+    trend = np.zeros(z.size, dtype=bool)
+    for i in range(8, z.size):
+        window = z[i - 8 : i + 1]
+        trend[i] = bool((window > 0).all() or (window < 0).all())
+    out = pd.DataFrame(
+        {
+            "date": data[date_col],
+            "z": z,
+            "classification": [classify(v) for v in z],
+            "two_beyond_2": two,
+            "trend_9": trend,
+        }
+    )
+    out["action"] = (
+        out["two_beyond_2"] | out["trend_9"] | (out["classification"] == "unsatisfactory")
+    )
+    return out
