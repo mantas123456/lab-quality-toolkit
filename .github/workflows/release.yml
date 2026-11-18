@@ -25,7 +25,7 @@ jobs:
           fi
       - name: Test
         run: |
-          pip install -e ".[dev]"
+          pip install -e ".[dev,app,reports]"  # all tests run, none skipped
           pytest -q
       - name: Validation (reference cases)
         run: python validation/run_validation.py
