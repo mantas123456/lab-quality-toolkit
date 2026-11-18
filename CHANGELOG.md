@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.4.0 – publish
+
+### Added
+- Ready for PyPI: full package metadata (SPDX licence, classifiers, project URLs, keywords),
+  `py.typed` marker for type checkers, README links that work on PyPI.
+- Documentation site with MkDocs Material and mkdocstrings: Home, Install, Quick start, an API
+  page per module generated from the docstrings, Worked examples and this changelog.
+  `pip install -e ".[docs]"` and `mkdocs serve` to build it locally.
+- `.github/workflows/docs.yml` builds the site (strict) and deploys it to GitHub Pages on every
+  push to main.
+- `.github/workflows/release.yml` runs the tests, builds the sdist and wheel, checks them with
+  twine and publishes to PyPI by trusted publishing when a tag `v*` is pushed. The tag must
+  match the version in `pyproject.toml`.
+
+### Changed
+- CI uses `actions/checkout@v5` and `actions/setup-python@v6` (Node 24).
+- `build` and `twine` added to the `dev` extra.
+
 ## 0.3.0 – fuller lab methods
 
 ### Added

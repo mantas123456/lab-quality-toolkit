@@ -1,23 +1,59 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "labqc"
-version = "0.3.0"
+version = "0.4.0"
 description = "Laboratory quality calculations: GUM uncertainty budgets, method validation, proficiency-test scores, Westgard rules and flue-gas emission conversions"
 readme = "README.md"
 requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [{ name = "Mantas Valantinavičius" }]
-license = { text = "MIT" }
-keywords = ["metrology", "uncertainty", "ISO 17025", "quality control", "Westgard", "emissions"]
+keywords = [
+    "metrology",
+    "uncertainty",
+    "GUM",
+    "ISO 17025",
+    "quality control",
+    "Westgard",
+    "method validation",
+    "proficiency testing",
+    "emissions",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Chemistry",
+    "Typing :: Typed",
+]
 dependencies = ["numpy>=1.26", "pandas>=2.1", "scipy>=1.11"]
 
+[project.urls]
+Homepage = "https://github.com/mantas123456/lab-quality-toolkit"
+Documentation = "https://mantas123456.github.io/lab-quality-toolkit/"
+Source = "https://github.com/mantas123456/lab-quality-toolkit"
+Issues = "https://github.com/mantas123456/lab-quality-toolkit/issues"
+Changelog = "https://github.com/mantas123456/lab-quality-toolkit/blob/main/CHANGELOG.md"
+
 [project.optional-dependencies]
-dev = ["pytest>=8", "ruff>=0.5", "matplotlib>=3.8"]
+dev = ["pytest>=8", "ruff>=0.5", "matplotlib>=3.8", "build>=1.2", "twine>=6"]
+docs = ["mkdocs>=1.6,<2", "mkdocs-material>=9.5", "mkdocstrings[python]>=0.26"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+labqc = ["py.typed"]
 
 [tool.ruff]
 line-length = 100

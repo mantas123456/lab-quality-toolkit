@@ -1,10 +1,13 @@
 # labqc: laboratory quality calculations in Python
 
 [![CI](https://github.com/mantas123456/lab-quality-toolkit/actions/workflows/ci.yml/badge.svg)](https://github.com/mantas123456/lab-quality-toolkit/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/labqc)](https://pypi.org/project/labqc/)
+[![Docs](https://img.shields.io/badge/docs-online-blue)](https://mantas123456.github.io/lab-quality-toolkit/)
 
 The calculations an ISO/IEC 17025 laboratory does every week, usually in spreadsheets,
 written as small, tested Python functions:
 
+<!-- --8<-- [start:modules] -->
 | Module | What it covers | Reference |
 |---|---|---|
 | `uncertainty` | GUM uncertainty budgets: Type A and B components, sensitivity coefficients (analytic or numerical), correlated inputs, Welch–Satterthwaite degrees of freedom, coverage factor, relative uncertainty; Monte Carlo propagation | JCGM 100:2008 (GUM), JCGM 101:2008 (GUM S1) |
@@ -13,15 +16,17 @@ written as small, tested Python functions:
 | `control_charts` | Shewhart limits; Westgard rules 1<sub>2s</sub>, 1<sub>3s</sub>, 2<sub>2s</sub>, R<sub>4s</sub>, 4<sub>1s</sub>, 10<sub>x</sub>, also across two or three control levels; CUSUM and EWMA charts | Westgard multirule QC; Montgomery, *Introduction to Statistical Quality Control* |
 | `emissions` | ppm ↔ mg/m³ at standard conditions, correction to reference O₂ and its uncertainty, wet ↔ dry, user-defined gases | Stack-emission practice, e.g. EN 303-5 at 10 % O₂ |
 
-Every function is tested against hand-calculated values or textbook worked examples (58 tests), and the examples below
-run in CI.
+Every function is tested against hand-calculated values or textbook worked examples (58 tests),
+and the examples below run in CI.
+<!-- --8<-- [end:modules] -->
 
+<!-- --8<-- [start:examples] -->
 ## Example 1: uncertainty of a moisture determination
 
 Oven-dry moisture of a wood-pellet sample, `M = (m2 − m3) / (m2 − m1) × 100`, with balance
 calibration and resolution for each weighing plus repeatability from five test portions.
 Sensitivity coefficients are found numerically from the model function
-([`examples/moisture_uncertainty.py`](examples/moisture_uncertainty.py)).
+([`examples/moisture_uncertainty.py`](https://github.com/mantas123456/lab-quality-toolkit/blob/main/examples/moisture_uncertainty.py)).
 
 ```text
                       component     u_i    c_i  contribution  dof  share_of_variance
@@ -41,9 +46,9 @@ nothing; more test portions would. With only four degrees of freedom the coverag
 ## Example 2: Westgard rules on daily QC
 
 Twenty baseline days set the limits. A +1.4 mg/kg shift is introduced from day 45
-([`examples/westgard_iqc.py`](examples/westgard_iqc.py)).
+([`examples/westgard_iqc.py`](https://github.com/mantas123456/lab-quality-toolkit/blob/main/examples/westgard_iqc.py)).
 
-![Levey-Jennings chart](examples/westgard_chart.png)
+![Levey-Jennings chart](https://raw.githubusercontent.com/mantas123456/lab-quality-toolkit/main/examples/westgard_chart.png)
 
 ```text
     value      z   status             rules
@@ -68,12 +73,12 @@ C3H8      6.5 ppm  ->     17.2 mg/m3 at 10 % O2
 ```
 
 At high excess air, a raw reading that looks comfortably low can exceed a limit once it is
-corrected to 10 % O₂ ([`examples/boiler_emissions.py`](examples/boiler_emissions.py)).
+corrected to 10 % O₂ ([`examples/boiler_emissions.py`](https://github.com/mantas123456/lab-quality-toolkit/blob/main/examples/boiler_emissions.py)).
 
 ## Example 4: Monte Carlo and correlated weighings
 
 Version 0.2 adds Monte Carlo propagation (GUM Supplement 1) and correlated inputs
-([`examples/monte_carlo_vs_gum.py`](examples/monte_carlo_vs_gum.py)).
+([`examples/monte_carlo_vs_gum.py`](https://github.com/mantas123456/lab-quality-toolkit/blob/main/examples/monte_carlo_vs_gum.py)).
 
 ```text
 1. Moisture, M = (m2 - m3) / (m2 - m1) x 100 [%]
@@ -136,12 +141,16 @@ c_ref, r = corrected_uncertainty(387.4, 8, o2_measured=12.8, u_o2=0.2, k=2)
 
 `pt_history()` reviews a lab's z-scores across PT rounds, and `westgard_levels()`, `cusum()`
 and `ewma()` cover two- and three-level QC and small shifts that Westgard rules miss.
+<!-- --8<-- [end:examples] -->
 
 ## Use it
 
 ```bash
-pip install git+https://github.com/mantas123456/lab-quality-toolkit
+pip install labqc
 ```
+
+Full documentation, with the API reference for every module:
+[mantas123456.github.io/lab-quality-toolkit](https://mantas123456.github.io/lab-quality-toolkit/).
 
 ```python
 from labqc.uncertainty import Component, combine, type_a
@@ -164,7 +173,13 @@ print(round(z, 2), classify(z))  # 2.5 questionable
 pip install -e ".[dev]"
 pytest
 ruff check .
+
+pip install -e ".[docs]"
+mkdocs serve        # documentation at http://127.0.0.1:8000
 ```
+
+Releases: push a tag `v*` (for example `v0.4.0`) that matches the version in
+`pyproject.toml`; GitHub Actions builds the package and publishes it to PyPI.
 
 ## Scope and limits
 

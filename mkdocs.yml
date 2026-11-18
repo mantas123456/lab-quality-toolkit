@@ -1,0 +1,64 @@
+site_name: labqc
+site_description: Laboratory quality calculations in Python - GUM uncertainty, method validation, PT scores, QC charts, emissions
+site_url: https://mantas123456.github.io/lab-quality-toolkit/
+repo_url: https://github.com/mantas123456/lab-quality-toolkit
+repo_name: mantas123456/lab-quality-toolkit
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - search.highlight
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Light mode
+
+nav:
+  - Home: index.md
+  - Install: install.md
+  - Quick start: quickstart.md
+  - API reference:
+      - uncertainty: api/uncertainty.md
+      - validation: api/validation.md
+      - proficiency: api/proficiency.md
+      - control_charts: api/control_charts.md
+      - emissions: api/emissions.md
+  - Worked examples: examples.md
+  - Changelog: changelog.md
+
+markdown_extensions:
+  - admonition
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.snippets:
+      check_paths: true
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            show_source: true
+            show_root_heading: false
+            show_root_toc_entry: false
+            members_order: source
+            docstring_style: google
+            show_signature_annotations: true
+            separate_signature: true
+            heading_level: 2
