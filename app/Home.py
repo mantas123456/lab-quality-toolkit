@@ -40,7 +40,11 @@ pages = [
         "Emissions",
         "ppm to mg/m3, dry, standard conditions, reference O2, and % of the limit.",
     ),
-    ("pages/6_Reports.py", "Reports", "PDF and Excel reports (coming in 0.6)."),
+    (
+        "pages/6_Reports.py",
+        "Reports",
+        "PDF, Excel and JSON records of your results; reload a saved budget.",
+    ),
 ]
 left, right = st.columns(2, gap="large")
 for i, (path, label, text) in enumerate(pages):

@@ -13,9 +13,11 @@ from common import (
     friendly_errors,
     page,
     parse_numbers,
+    report_button,
 )
 from plotly.subplots import make_subplots
 
+from labqc.report import RunRecord
 from labqc.validation import linearity, lod_loq, precision, recovery
 
 page(
@@ -75,7 +77,8 @@ with results:
         sig = pd.to_numeric(data["signal"], errors="raise")
         cal = linearity(x, sig, weights=None if weights == "none" else weights)
         lod, loq = lod_loq(cal, blank_sd or None)
-        prec = precision(parse_numbers(replicates_text, "Replicate results"))
+        replicates = parse_numbers(replicates_text, "Replicate results")
+        prec = precision(replicates)
         if prec["n"] < 2:
             raise ValueError("Precision needs at least two replicate results")
         if added == 0:
@@ -149,5 +152,23 @@ c1, c2 = st.columns(2)
 c1.download_button("Download results (CSV)", csv_bytes(summary), "validation.csv", "text/csv")
 c2.download_button(
     "Download residuals (CSV)", csv_bytes(residuals), "calibration_residuals.csv", "text/csv"
+)
+report_button(
+    lambda: RunRecord(
+        "labqc.validation",
+        title="Method validation",
+        method=(
+            f"Least-squares calibration line (weighting {cal.weighting}) with a lack-of-fit "
+            "F-test from replicate standards; LOD = 3.3 s / slope and LOQ = 10 s / slope "
+            "(ICH Q2); precision as sample SD and RSD; recovery = 100 (spiked - unspiked) / added."
+        ),
+        inputs={
+            "calibration": residuals[["concentration", "signal"]],
+            "replicates": replicates,
+            "recovery": {"spiked": measured, "unspiked": unspiked, "added": added},
+        },
+        settings={"weighting": weights, "blank_sd": blank_sd or None},
+        result=dict(zip(summary["quantity"], summary["value"], strict=True)),
+    )
 )
 footer()

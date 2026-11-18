@@ -13,10 +13,12 @@ from common import (
     footer,
     friendly_errors,
     page,
+    report_button,
 )
 
 from labqc.control_charts import Limits
 from labqc.proficiency import classify, en_number, robust_mean_sd, z_score, zeta_score
+from labqc.report import RunRecord
 
 page(
     "Proficiency testing",
@@ -149,4 +151,21 @@ export_header()
 c1, c2 = st.columns(2)
 c1.download_button("Download scores (CSV)", csv_bytes(scores), "pt_scores.csv", "text/csv")
 c2.download_button("Download round (CSV)", csv_bytes(round_out), "pt_round.csv", "text/csv")
+report_button(
+    lambda: RunRecord(
+        "labqc.proficiency",
+        title="Proficiency testing",
+        method=(
+            "z = (x - X) / sigma_pt, zeta = (x - X) / sqrt(u_x^2 + u_X^2), "
+            "En = (x - X) / sqrt(U_x^2 + U_X^2) (ISO 13528); robust mean and SD of the round by "
+            "Algorithm A (ISO 13528 Annex C), with z of each lab against them."
+        ),
+        inputs={
+            "x": x, "assigned": assigned, "sigma_pt": sigma_pt, "u_x": u_x,
+            "u_assigned": u_assigned, "U_x": U_x, "U_assigned": U_assigned,
+            "round": round_out[["lab", "result"]],
+        },
+        result={"scores": scores, "robust_mean": mean, "robust_sd": sd, "round_scores": round_out},
+    )
+)  # fmt: skip
 footer()

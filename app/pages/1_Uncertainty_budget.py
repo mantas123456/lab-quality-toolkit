@@ -11,8 +11,10 @@ from common import (
     footer,
     friendly_errors,
     page,
+    report_button,
 )
 
+from labqc.report import record_budget
 from labqc.uncertainty import DIVISORS, TABLE_COLUMNS, combine, components_from_table
 
 page(
@@ -26,6 +28,8 @@ def load_example() -> None:
     st.session_state.unc_table = demo_table("moisture_budget")
     st.session_state.unc_y = examples()["moisture"]["y"]
     st.session_state.unc_unit = examples()["moisture"]["unit"]
+    st.session_state.unc_coverage = 0.95
+    st.session_state.unc_k = 0.0
     st.session_state.unc_version = st.session_state.get("unc_version", 0) + 1
 
 
@@ -57,11 +61,9 @@ with inputs:
     unit = c2.text_input("Unit of y", key="unc_unit")
     c1, c2 = st.columns(2)
     coverage = c1.selectbox(
-        "Coverage", [0.90, 0.95, 0.99], index=1, format_func=lambda p: f"{p:.0%}"
+        "Coverage", [0.90, 0.95, 0.99], key="unc_coverage", format_func=lambda p: f"{p:.0%}"
     )
-    fixed_k = c2.number_input(
-        "Fixed k (0 = from v_eff)", min_value=0.0, value=0.0, step=0.5, key="unc_k"
-    )
+    fixed_k = c2.number_input("Fixed k (0 = from v_eff)", min_value=0.0, step=0.5, key="unc_k")
     st.markdown(
         "**Components.** For *normal*, value is a standard uncertainty (or an expanded one "
         "with its k). For the other distributions, value is the half-width. Blank dof = infinite."
@@ -139,5 +141,8 @@ summary = budget.assign(
 )
 st.download_button(
     "Download budget (CSV)", csv_bytes(summary), "uncertainty_budget.csv", "text/csv"
+)
+report_button(
+    lambda: record_budget(components, result, coverage=coverage, fixed_k=fixed_k or None, unit=unit)
 )
 footer()

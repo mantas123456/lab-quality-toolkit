@@ -15,8 +15,9 @@ written as small, tested Python functions:
 | `proficiency` | z, zeta and E<sub>n</sub> scores with interpretation; robust consensus mean (Algorithm A); z-score history across rounds | ISO 13528, ISO/IEC 17043 |
 | `control_charts` | Shewhart limits; Westgard rules 1<sub>2s</sub>, 1<sub>3s</sub>, 2<sub>2s</sub>, R<sub>4s</sub>, 4<sub>1s</sub>, 10<sub>x</sub>, also across two or three control levels; CUSUM and EWMA charts | Westgard multirule QC; Montgomery, *Introduction to Statistical Quality Control* |
 | `emissions` | ppm ↔ mg/m³ at standard conditions, correction to reference O₂ and its uncertainty, wet ↔ dry, user-defined gases | Stack-emission practice, e.g. EN 303-5 at 10 % O₂ |
+| `report` | Run records (inputs, settings, result, method, labqc version, UTC time, analyst) saved as JSON and reloaded; Excel workbook and one-page PDF reports | ISO/IEC 17025 7.5 (technical records) |
 
-Every function is tested against hand-calculated values or textbook worked examples (66 library tests, plus 19 for the web app),
+Every function is tested against hand-calculated values or textbook worked examples (71 library tests, plus 26 for the web app),
 and the examples below run in CI.
 <!-- --8<-- [end:modules] -->
 
@@ -156,15 +157,15 @@ can be checked against each other:
 | Proficiency testing | z, zeta and E<sub>n</sub> with coloured status; robust mean and SD of a round (Algorithm A) |
 | QC charts | CSV of control results; Levey-Jennings chart with ±1, 2, 3 SD lines and Westgard violations marked |
 | Emissions | ppm or mg/m³ (standard or actual conditions), wet or dry, corrected to reference O₂, % of the limit |
-| Reports | PDF and Excel export, coming in 0.6 |
+| Reports | Results added with *Add to report* on any page: one PDF per result, one Excel workbook, JSON records; reload a saved budget into the Uncertainty page |
 
 The app contains no calculations of its own: every number comes from labqc. Bad input shows
-a plain message, not a Python traceback. Every page has CSV downloads.
+a plain message, not a Python traceback. Every page has CSV downloads and an *Add to report* button.
 
 Run it on your PC:
 
 ```bash
-pip install -e ".[app]"
+pip install -e ".[app,reports]"
 streamlit run app/Home.py
 ```
 
@@ -173,6 +174,24 @@ GitHub, choose **Create app → Deploy a public app from GitHub**, pick this rep
 `main` and main file path `app/Home.py`, then **Deploy**. The cloud installs
 `app/requirements.txt`, and the app imports labqc from `src/`, so a push to main redeploys
 the app with the matching library code.
+
+## Reports and records
+
+```python
+from labqc.report import RunRecord, record_budget, to_excel, to_pdf
+from labqc.uncertainty import Component, combine
+
+components = [Component("Certificate", 0.010, k=2), Component("Resolution", 0.005, "rectangular")]
+result = combine(components, value=10.02)
+
+record = record_budget(components, result, unit="mg", analyst="A. Analyst")
+open("budget.json", "w", encoding="utf-8").write(record.to_json())  # reload with from_json
+to_pdf(record, "budget.pdf")  # needs pip install "labqc[reports]"
+to_excel([record], "records.xlsx")
+```
+
+Each record keeps the inputs, settings, result, method, labqc version and UTC time, so a
+result can be traced and recalculated later.
 
 ## Use it
 

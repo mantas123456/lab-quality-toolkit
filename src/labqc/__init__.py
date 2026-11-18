@@ -1,6 +1,7 @@
 """Calculations for laboratory quality work: uncertainty, validation, PT, IQC, emissions."""
 
-from . import control_charts, emissions, proficiency, uncertainty, validation
+__version__ = "0.6.0"
 
-__all__ = ["control_charts", "emissions", "proficiency", "uncertainty", "validation"]
-__version__ = "0.5.0"
+from . import control_charts, emissions, proficiency, report, uncertainty, validation  # noqa: E402
+
+__all__ = ["control_charts", "emissions", "proficiency", "report", "uncertainty", "validation"]

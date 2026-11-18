@@ -12,9 +12,11 @@ from common import (
     footer,
     friendly_errors,
     page,
+    report_button,
 )
 
 from labqc.emissions import MOLAR_MASS, UNITS, correct_emission
+from labqc.report import RunRecord
 
 page(
     "Emissions",
@@ -143,4 +145,21 @@ with results:
 
 export_header()
 st.download_button("Download results (CSV)", csv_bytes(table), "emissions.csv", "text/csv")
+report_button(
+    lambda: RunRecord(
+        "labqc.emissions.correct_emission",
+        title="Emissions",
+        method=(
+            "ppm to mg/m3 with the molar volume 22.414 L/mol at 273.15 K and 101.325 kPa; wet to "
+            "dry by 1 / (1 - water fraction); correction to reference O2 by "
+            "(20.9 - O2_ref) / (20.9 - O2_measured)."
+        ),
+        inputs={"readings": rows},
+        settings={
+            "o2_measured": o2_measured, "o2_ref": o2_ref, "water_vol_fraction": water,
+            "t_c": t_c, "p_kpa": p_kpa,
+        },
+        result={"correction_factor": res.correction_factor, "results": table},
+    )
+)  # fmt: skip
 footer()

@@ -101,3 +101,53 @@ def test_demo_data_is_up_to_date():
         on_disk = (demo / f"{name}.csv").read_text(encoding="utf-8")
         assert on_disk == make_demo_data.csv_text(df), f"{name}.csv is out of date"
     assert (demo / "examples.json").read_text(encoding="utf-8") == make_demo_data.json_text(scalars)
+
+
+# --- v0.6: reports and records -------------------------------------------------------
+
+
+def _button(at: AppTest, label: str):
+    return next(b for b in at.button if b.label == label)
+
+
+@pytest.mark.parametrize("path", PAGES[:5], ids=lambda p: p.stem)
+def test_add_to_report_makes_a_record(path):
+    at = run(path)
+    _button(at, "Add to report").click().run()
+    assert not at.exception
+    records = at.session_state["records"]
+    assert len(records) == 1
+    record = type(records[0]).from_json(records[0].to_json())  # survives a JSON round trip
+    assert record.function.startswith("labqc.")
+
+
+def test_reports_page_with_records_builds_downloads():
+    from labqc.report import RunRecord
+
+    at = run(PAGES[0])
+    _button(at, "Add to report").click().run()
+    records = [*at.session_state["records"], RunRecord("labqc.proficiency", {"x": 1.0})]
+    at = run(PAGES[5], records=records, analyst="A. Analyst")
+    assert not at.exception
+    assert not at.error
+    labels = [b.label for b in at.get("download_button")]
+    assert labels == ["Excel workbook, all 2 record(s)", "PDF report", "JSON record"]
+
+
+def test_saved_budget_reloads_into_the_uncertainty_page():
+    """Start from Home as `streamlit run app/Home.py` does, so st.switch_page can resolve pages."""
+    import moisture_uncertainty as ex
+
+    from labqc.report import RunRecord
+
+    at = run(PAGES[0])
+    _button(at, "Add to report").click().run()
+    saved = at.session_state["records"][0].to_json()  # what the JSON download contains
+
+    at = AppTest.from_file(str(ROOT / "app" / "Home.py"), default_timeout=60).run()
+    at.session_state["report_loaded"] = RunRecord.from_json(saved)
+    at.switch_page("pages/6_Reports.py").run()
+    _button(at, "Open this budget in Uncertainty budget").click().run()
+    assert not at.exception
+    assert not at.error
+    assert metric(at, "U (95%)") == f"{ex.result.expanded:.4g}"  # now on the Uncertainty page

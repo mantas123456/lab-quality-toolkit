@@ -94,6 +94,23 @@ def csv_bytes(df: pd.DataFrame) -> bytes:
     return df.to_csv(index=False).encode("utf-8")
 
 
+def add_record(make) -> None:
+    """Button callback: build the RunRecord now and keep it for the Reports page."""
+    record = make()
+    st.session_state.setdefault("records", []).append(record)
+    st.toast(f"Added to report: {record.label()}")
+
+
+def report_button(make) -> None:
+    """'Add to report' button; `make` returns a labqc.report.RunRecord of the current result."""
+    st.button(
+        "Add to report",
+        on_click=add_record,
+        args=(make,),
+        help="Keep this result for the Reports page (PDF, Excel and JSON).",
+    )
+
+
 def footer() -> None:
     st.caption(
         f"labqc {labqc.__version__} · a calculation aid, not validated software: "

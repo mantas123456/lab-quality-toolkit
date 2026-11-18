@@ -34,6 +34,7 @@ nav:
       - proficiency: api/proficiency.md
       - control_charts: api/control_charts.md
       - emissions: api/emissions.md
+      - report: api/report.md
   - Worked examples: examples.md
   - Changelog: changelog.md
 

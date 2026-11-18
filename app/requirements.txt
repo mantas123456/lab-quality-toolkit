@@ -2,6 +2,8 @@
 # The app imports labqc from src/ in this repository, so only its dependencies are listed.
 streamlit>=1.40
 plotly>=5.24
+reportlab>=4.0
+openpyxl>=3.1
 numpy>=1.26
 pandas>=2.1
 scipy>=1.11

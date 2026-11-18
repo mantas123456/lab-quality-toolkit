@@ -13,9 +13,11 @@ from common import (
     footer,
     friendly_errors,
     page,
+    report_button,
 )
 
 from labqc.control_charts import REJECT_RULES, Limits, limits_from_data, westgard
+from labqc.report import RunRecord
 
 page(
     "QC charts",
@@ -159,5 +161,28 @@ with results:
 export_header()
 st.download_button(
     "Download status table (CSV)", csv_bytes(table), "westgard_status.csv", "text/csv"
+)
+report_button(
+    lambda: RunRecord(
+        "labqc.control_charts.westgard",
+        title="QC chart",
+        method=(
+            "Levey-Jennings chart; Westgard multirules 1_2s (warning), 1_3s, 2_2s, R_4s, 4_1s "
+            "and 10_x (reject) on z = (x - centre) / SD."
+        ),
+        inputs={"results": data},
+        settings={
+            "limits": mode,
+            "baseline_results": n_base,
+            "sd_from": method if n_base else None,
+        },
+        result={
+            "centre": limits.centre,
+            "sd": limits.sd,
+            "warnings": int(counts.get("warning", 0)),
+            "rejects": int(counts.get("reject", 0)),
+            "flagged": flagged[[table.columns[0], "value", "z", "status", "rules"]],
+        },
+    )
 )
 footer()

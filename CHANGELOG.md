@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.6.0 – reports and records
+
+### Added
+- `labqc.report`: `RunRecord` (function, inputs, settings, result, method, title, analyst,
+  labqc version, UTC timestamp) with `to_json` / `from_json`; strict JSON, with infinite
+  degrees of freedom stored as "inf". `record_budget()` and `budget_from_record()` save and
+  reload uncertainty budgets.
+- `to_excel(records, path)`, one sheet per record, and `to_pdf(record, path)`, a one-page report
+  with title, meta data, method, inputs, settings and result. Both accept a path or a binary
+  file object. `reportlab` and `openpyxl` are in the new `[reports]` extra.
+- Web app: an *Add to report* button on every page; the Reports page lists the session's
+  records, sets the analyst, downloads one Excel workbook, a PDF or a JSON record per result,
+  and reloads a saved budget into the Uncertainty page.
+- Tests: JSON round trip is identical, a reloaded budget gives the same U, PDF and Excel files
+  are created; app tests for *Add to report*, the downloads and reloading a budget.
+
+### Changed
+- `labqc.__version__` is set before the submodules are imported, so they can record it.
+- CI installs the `[reports]` extra; `app/requirements.txt` lists reportlab and openpyxl.
+
 ## 0.5.0 – web app
 
 ### Added

@@ -1,0 +1,3 @@
+# labqc.report
+
+::: labqc.report
