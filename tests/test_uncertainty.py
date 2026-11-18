@@ -245,3 +245,52 @@ def test_monte_carlo_falls_back_for_scalar_only_models():
     mc = monte_carlo(lambda x: math.log(x), {"x": 10.0}, {"x": Component("x", 0.1)}, n=2000, seed=0)
     assert mc.samples.shape == (2000,)
     assert mc.standard_uncertainty == pytest.approx(0.01, rel=0.05)
+
+
+# --- v0.5: table input for the web app -----------------------------------------
+
+
+def test_components_from_table():
+    """Hand check: blank optional cells take their defaults, and the budget matches
+    combine() on the same components (u_c = sqrt(0.1^2 + 0.2^2))."""
+    import pandas as pd
+
+    from labqc.uncertainty import components_from_table
+
+    table = pd.DataFrame(
+        {
+            "name": ["Certificate", "Resolution", None],
+            "value": [0.2, 0.2 * 3**0.5, None],
+            "distribution": ["normal", "Rectangular", None],
+            "k": [2, None, None],
+            "sensitivity": [None, 1, None],
+            "dof": [None, "inf", None],
+            "unit": ["g", None, None],
+        }
+    )
+    comps = components_from_table(table)
+    assert [c.name for c in comps] == ["Certificate", "Resolution"]
+    assert comps[1].distribution == "rectangular"
+    assert math.isinf(comps[0].dof)
+    assert combine(comps).combined == pytest.approx(math.hypot(0.1, 0.2))
+
+
+@pytest.mark.parametrize(
+    ("change", "message"),
+    [
+        ({"distribution": ["lognormal"]}, "Distribution must be normal, rectangular"),
+        ({"value": ["abc"]}, "value must be a number"),
+        ({"name": [""]}, "needs a name"),
+        ({"k": [0]}, "k must be greater than 0"),
+    ],
+)
+def test_components_from_table_errors(change, message):
+    import pandas as pd
+
+    from labqc.uncertainty import components_from_table
+
+    row = {"name": ["a"], "value": [1.0], "distribution": ["normal"], "k": [1.0]}
+    with pytest.raises(ValueError, match=message):
+        components_from_table(pd.DataFrame({**row, **change}))
+    with pytest.raises(ValueError, match="needs the column"):
+        components_from_table(pd.DataFrame({"name": ["a"]}))

@@ -59,7 +59,10 @@ class Component:
     @property
     def standard_uncertainty(self) -> float:
         if self.distribution not in DIVISORS:
-            raise ValueError(f"unknown distribution {self.distribution!r}")
+            raise ValueError(
+                "Distribution must be normal, rectangular, triangular or u-shaped, "
+                f"not {self.distribution!r}"
+            )
         divisor = self.k if self.distribution == "normal" else DIVISORS[self.distribution]
         return abs(self.value) / divisor
 
@@ -67,6 +70,72 @@ class Component:
     def contribution(self) -> float:
         """|c_i| * u_i, in units of the result."""
         return abs(self.sensitivity) * self.standard_uncertainty
+
+
+TABLE_COLUMNS = ("name", "value", "distribution", "k", "sensitivity", "dof", "unit")
+
+
+def _blank(raw: object) -> bool:
+    return raw is None or raw == "" or (isinstance(raw, float) and math.isnan(raw))
+
+
+def components_from_table(table: pd.DataFrame) -> list[Component]:
+    """Build components from a table, e.g. an uploaded CSV or an edited grid.
+
+    Columns: name and value are required; distribution (default "normal"),
+    k (1), sensitivity (1), dof (blank or "inf" = infinite) and unit ("")
+    are optional. Fully empty rows are skipped. Raises ValueError with the
+    row number (counting from 1) and a plain explanation for bad input.
+    """
+    missing = [c for c in ("name", "value") if c not in table.columns]
+    if missing:
+        raise ValueError(f"The table needs the column(s): {', '.join(missing)}")
+    rows = table.dropna(how="all")
+    if rows.empty:
+        raise ValueError("The budget is empty: add at least one component")
+
+    def number(row: int, column: str, raw: object, default: float) -> float:
+        if _blank(raw):
+            return default
+        try:
+            return float(raw)
+        except (TypeError, ValueError):
+            raise ValueError(f"Row {row}: {column} must be a number, not {raw!r}") from None
+
+    components = []
+    for row, (_, r) in enumerate(rows.iterrows(), start=1):
+        name = r.get("name")
+        if _blank(name) or not str(name).strip():
+            raise ValueError(f"Row {row}: every component needs a name")
+        value = number(row, "value", r.get("value"), math.nan)
+        if math.isnan(value):
+            raise ValueError(f"Row {row}: value is missing")
+        dist = r.get("distribution")
+        dist = "normal" if _blank(dist) else str(dist).strip().lower()
+        if dist not in DIVISORS:
+            raise ValueError(
+                f"Row {row}: Distribution must be normal, rectangular, triangular or u-shaped, "
+                f"not {dist!r}"
+            )
+        k = number(row, "k", r.get("k"), 1.0)
+        dof = number(row, "dof", r.get("dof"), math.inf)
+        if k <= 0:
+            raise ValueError(f"Row {row}: k must be greater than 0")
+        if dof <= 0:
+            raise ValueError(f"Row {row}: dof must be greater than 0 (blank means infinite)")
+        unit = r.get("unit")
+        components.append(
+            Component(
+                str(name).strip(),
+                value,
+                dist,
+                k,
+                number(row, "sensitivity", r.get("sensitivity"), 1.0),
+                dof,
+                "" if _blank(unit) else str(unit),
+            )
+        )
+    return components
 
 
 def type_a(readings: Sequence[float], name: str = "Repeatability") -> Component:

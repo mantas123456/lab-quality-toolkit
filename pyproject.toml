@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "labqc"
-version = "0.4.0"
+version = "0.5.0"
 description = "Laboratory quality calculations: GUM uncertainty budgets, method validation, proficiency-test scores, Westgard rules and flue-gas emission conversions"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -47,6 +47,7 @@ Changelog = "https://github.com/mantas123456/lab-quality-toolkit/blob/main/CHANG
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "ruff>=0.5", "matplotlib>=3.8", "build>=1.2", "twine>=6"]
+app = ["streamlit>=1.40", "plotly>=5.24"]
 docs = ["mkdocs>=1.6,<2", "mkdocs-material>=9.5", "mkdocstrings[python]>=0.26"]
 
 [tool.setuptools.packages.find]

@@ -67,6 +67,10 @@ class Linearity:
     def predict_concentration(self, signal: float) -> float:
         return (signal - self.intercept) / self.slope
 
+    def predict_signal(self, concentration: float | np.ndarray) -> float | np.ndarray:
+        """Signal on the fitted line: intercept + slope * concentration."""
+        return self.intercept + self.slope * np.asarray(concentration, dtype=float)
+
 
 def _weights(x: np.ndarray, weights: Weights) -> tuple[np.ndarray, str]:
     """Weights normalised to a mean of 1, and a label for them."""

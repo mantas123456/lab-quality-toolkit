@@ -9,6 +9,8 @@ EN 303-5).
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 from .uncertainty import Component, Result, propagate
 
 O2_AIR = 20.9  # % O2 in dry air, as used in EN and ISO stack-emission standards
@@ -96,4 +98,86 @@ def corrected_uncertainty(
         },
         coverage=coverage,
         k=k,
+    )
+
+
+def percent_of_limit(value: float, limit: float) -> float:
+    """value as a percentage of an emission limit."""
+    if not limit > 0:
+        raise ValueError("The limit must be greater than 0")
+    return 100 * value / limit
+
+
+UNITS = ("ppm", "mg/m3", "mg/m3 actual")
+"""Input units for `correct_emission`: ppm by volume, mg/m3 at standard conditions
+(273.15 K, 101.325 kPa), or mg/m3 at the measured temperature and pressure."""
+
+
+@dataclass(frozen=True)
+class EmissionResult:
+    """Each step of `correct_emission`, in mg/m3 at standard conditions."""
+
+    gas: str
+    unit: str
+    value: float
+    mg_m3: float  # after unit and temperature/pressure conversion, wet or dry as measured
+    mg_m3_dry: float
+    correction_factor: float  # (20.9 - O2_ref) / (20.9 - O2_meas)
+    mg_m3_ref: float  # dry, at reference O2
+    o2_ref: float
+    limit: float | None = None
+    percent_of_limit: float | None = None
+
+    @property
+    def passed(self) -> bool | None:
+        return None if self.limit is None else self.mg_m3_ref <= self.limit
+
+
+def correct_emission(
+    value: float,
+    gas: str,
+    unit: str = "ppm",
+    o2_measured: float = 10.0,
+    o2_ref: float = 10.0,
+    water_vol_fraction: float = 0.0,
+    t_c: float | None = None,
+    p_kpa: float | None = None,
+    limit: float | None = None,
+) -> EmissionResult:
+    """Convert one analyser reading to mg/m3, dry, standard conditions, reference O2.
+
+    unit "ppm" uses the gas molar mass; "mg/m3" is already at standard
+    conditions; "mg/m3 actual" is converted from t_c (degC) and p_kpa.
+    water_vol_fraction > 0 converts a wet reading to dry. With `limit`
+    (mg/m3 at the reference O2) the result also gives the % of the limit.
+    """
+    if unit not in UNITS:
+        raise ValueError(f"Unit must be one of {', '.join(UNITS)}, not {unit!r}")
+    if unit == "ppm":
+        if gas not in MOLAR_MASS:
+            raise ValueError(
+                f"Unknown gas {gas!r}: choose one of {', '.join(MOLAR_MASS)} or register it"
+            )
+        mg = ppm_to_mg_m3(value, gas)
+    elif unit == "mg/m3 actual":
+        if t_c is None or p_kpa is None:
+            raise ValueError("mg/m3 at actual conditions needs the temperature and pressure")
+        if p_kpa <= 0 or t_c <= -273.15:
+            raise ValueError("Temperature must be above -273.15 degC and pressure above 0 kPa")
+        mg = to_temperature_pressure(value, t_c, p_kpa)
+    else:
+        mg = value
+    dry = wet_to_dry(mg, water_vol_fraction)
+    ref = to_reference_o2(dry, o2_measured, o2_ref)
+    return EmissionResult(
+        gas=gas,
+        unit=unit,
+        value=value,
+        mg_m3=mg,
+        mg_m3_dry=dry,
+        correction_factor=to_reference_o2(1.0, o2_measured, o2_ref),
+        mg_m3_ref=ref,
+        o2_ref=o2_ref,
+        limit=limit,
+        percent_of_limit=None if limit is None else percent_of_limit(ref, limit),
     )

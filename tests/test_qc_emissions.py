@@ -173,3 +173,38 @@ def test_corrected_uncertainty_matches_analytic_derivatives():
     assert r.combined == pytest.approx(22.26, abs=0.01)
     assert r.expanded == pytest.approx(2 * r.combined)
     assert r.table.loc[0, "component"] == "Measured O2"  # the larger share here
+
+
+# --- v0.5: full emission correction for the web app ----------------------------
+
+
+def test_correct_emission_reproduces_boiler_example():
+    """examples/boiler_emissions.py: CO 310 ppm dry at 12.8 % O2 is 521.3 mg/m3 at
+    10 % O2, 104 % of the 500 mg/m3 example limit."""
+    from labqc.emissions import correct_emission
+
+    r = correct_emission(310, "CO", "ppm", o2_measured=12.8, o2_ref=10, limit=500)
+    assert r.mg_m3_ref == pytest.approx(521.3, abs=0.05)
+    assert r.correction_factor == pytest.approx(10.9 / 8.1)
+    assert r.percent_of_limit == pytest.approx(104.3, abs=0.05)
+    assert r.passed is False
+
+
+def test_correct_emission_wet_actual_conditions():
+    """Hand check: 100 mg/m3 at 150 degC and 100 kPa with 10 % water, O2 measured at the
+    reference 10 %: 100 x 423.15 / 273.15 x 101.325 / 100 / 0.9 = 174.41 mg/m3."""
+    from labqc.emissions import correct_emission, percent_of_limit
+
+    r = correct_emission(
+        100, "CO", "mg/m3 actual", o2_measured=10, water_vol_fraction=0.1, t_c=150, p_kpa=100
+    )
+    assert r.mg_m3_ref == pytest.approx(100 * 423.15 / 273.15 * 1.01325 / 0.9, rel=1e-9)
+    assert r.mg_m3_ref == pytest.approx(174.41, abs=0.01)
+    assert r.passed is None
+    assert percent_of_limit(50, 200) == pytest.approx(25)
+    with pytest.raises(ValueError):
+        correct_emission(100, "CO", "mg/m3 actual")  # no temperature and pressure
+    with pytest.raises(ValueError):
+        correct_emission(100, "XYZ", "ppm")
+    with pytest.raises(ValueError):
+        percent_of_limit(1, 0)

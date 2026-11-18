@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.5.0 – web app
+
+### Added
+- Streamlit web app in `app/` (`streamlit run app/Home.py`): Home, Uncertainty budget, Method
+  validation, Proficiency testing, QC charts, Emissions and a Reports placeholder. Inputs in
+  the middle, results on the right, CSV export at the bottom, plotly charts, a "Load example
+  data" button on every page and plain error messages instead of tracebacks.
+- Demo data in `app/demo_data/`, generated from the scripts in `examples/` by
+  `make_demo_data.py`, so the app shows the same numbers as the worked examples.
+- `[app]` extra and `app/requirements.txt` (for Streamlit Community Cloud).
+- App tests in `tests/app/` with Streamlit's AppTest, run in CI: every page runs, matches the
+  examples, and shows bad input as an error message.
+- Library functions the app needed, each with a test: `uncertainty.components_from_table()`,
+  `Linearity.predict_signal()`, `emissions.correct_emission()` (unit, wet/dry, temperature and
+  pressure, reference O₂ and % of limit in one call) and `emissions.percent_of_limit()`.
+
+### Changed
+- An unknown distribution now raises "Distribution must be normal, rectangular, triangular or
+  u-shaped, not '…'".
+- CI installs the `[app]` extra.
+
 ## 0.4.0 – publish
 
 ### Added

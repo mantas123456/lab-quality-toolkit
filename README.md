@@ -16,7 +16,7 @@ written as small, tested Python functions:
 | `control_charts` | Shewhart limits; Westgard rules 1<sub>2s</sub>, 1<sub>3s</sub>, 2<sub>2s</sub>, R<sub>4s</sub>, 4<sub>1s</sub>, 10<sub>x</sub>, also across two or three control levels; CUSUM and EWMA charts | Westgard multirule QC; Montgomery, *Introduction to Statistical Quality Control* |
 | `emissions` | ppm ↔ mg/m³ at standard conditions, correction to reference O₂ and its uncertainty, wet ↔ dry, user-defined gases | Stack-emission practice, e.g. EN 303-5 at 10 % O₂ |
 
-Every function is tested against hand-calculated values or textbook worked examples (58 tests),
+Every function is tested against hand-calculated values or textbook worked examples (66 library tests, plus 19 for the web app),
 and the examples below run in CI.
 <!-- --8<-- [end:modules] -->
 
@@ -143,6 +143,37 @@ c_ref, r = corrected_uncertainty(387.4, 8, o2_measured=12.8, u_o2=0.2, k=2)
 and `ewma()` cover two- and three-level QC and small shifts that Westgard rules miss.
 <!-- --8<-- [end:examples] -->
 
+## Web app
+
+A Streamlit app puts every module in the browser, for analysts who do not write Python.
+Each page opens with the worked examples above already loaded, so the app and the library
+can be checked against each other:
+
+| Page | What it does |
+|---|---|
+| Uncertainty budget | Edit or upload (CSV) the components; result card y ± U with k and v_eff; budget table and a chart of each component's share of variance |
+| Method validation | Calibration line (ordinary or weighted) with residual plot and lack-of-fit test, LOD/LOQ, precision, recovery |
+| Proficiency testing | z, zeta and E<sub>n</sub> with coloured status; robust mean and SD of a round (Algorithm A) |
+| QC charts | CSV of control results; Levey-Jennings chart with ±1, 2, 3 SD lines and Westgard violations marked |
+| Emissions | ppm or mg/m³ (standard or actual conditions), wet or dry, corrected to reference O₂, % of the limit |
+| Reports | PDF and Excel export, coming in 0.6 |
+
+The app contains no calculations of its own: every number comes from labqc. Bad input shows
+a plain message, not a Python traceback. Every page has CSV downloads.
+
+Run it on your PC:
+
+```bash
+pip install -e ".[app]"
+streamlit run app/Home.py
+```
+
+Deploy it free on [Streamlit Community Cloud](https://share.streamlit.io): sign in with
+GitHub, choose **Create app → Deploy a public app from GitHub**, pick this repository, branch
+`main` and main file path `app/Home.py`, then **Deploy**. The cloud installs
+`app/requirements.txt`, and the app imports labqc from `src/`, so a push to main redeploys
+the app with the matching library code.
+
 ## Use it
 
 ```bash
@@ -176,6 +207,10 @@ ruff check .
 
 pip install -e ".[docs]"
 mkdocs serve        # documentation at http://127.0.0.1:8000
+
+pip install -e ".[app]"
+streamlit run app/Home.py   # web app at http://localhost:8501
+python app/demo_data/make_demo_data.py   # after changing an example
 ```
 
 Releases: push a tag `v*` (for example `v0.4.0`) that matches the version in

@@ -173,3 +173,13 @@ def test_pt_history_flags():
     assert h.index[h["trend_9"]].tolist() == [12]
     assert h.loc[13, "classification"] == "unsatisfactory"
     assert h.index[h["action"]].tolist() == [3, 12, 13]
+
+
+def test_predict_signal_on_fitted_line():
+    """Hand check: y = 2x + 1 gives 9 at x = 4, and predict_concentration inverts it."""
+    from labqc.validation import linearity
+
+    cal = linearity([0, 1, 2, 3], [1, 3, 5, 7])
+    assert cal.predict_signal(4) == pytest.approx(9)
+    assert list(cal.predict_signal([0, 2])) == pytest.approx([1, 5])
+    assert cal.predict_concentration(cal.predict_signal(2.5)) == pytest.approx(2.5)

@@ -3,4 +3,4 @@
 from . import control_charts, emissions, proficiency, uncertainty, validation
 
 __all__ = ["control_charts", "emissions", "proficiency", "uncertainty", "validation"]
-__version__ = "0.4.0"
+__version__ = "0.5.0"

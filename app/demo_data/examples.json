@@ -1,0 +1,39 @@
+{
+  "moisture": {
+    "y": 6.971475974730401,
+    "unit": "%"
+  },
+  "qc": {
+    "baseline_points": 20
+  },
+  "emissions": {
+    "o2_measured": 12.8,
+    "o2_ref": 10.0,
+    "water_vol_fraction": 0.0,
+    "t_c": 0.0,
+    "p_kpa": 101.325
+  },
+  "validation": {
+    "replicates": [
+      50.4,
+      50.7,
+      49.1,
+      49.0,
+      51.1
+    ],
+    "recovery": {
+      "measured": 14.5,
+      "unspiked": 5.0,
+      "added": 10.0
+    }
+  },
+  "pt": {
+    "x": 10.75,
+    "assigned": 10.0,
+    "sigma_pt": 0.3,
+    "u_x": 0.2,
+    "u_assigned": 0.1,
+    "U_x": 0.4,
+    "U_assigned": 0.2
+  }
+}
