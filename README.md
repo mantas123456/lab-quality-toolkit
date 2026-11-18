@@ -7,13 +7,13 @@ written as small, tested Python functions:
 
 | Module | What it covers | Reference |
 |---|---|---|
-| `uncertainty` | GUM uncertainty budgets: Type A and B components, sensitivity coefficients (analytic or numerical), Welch–Satterthwaite degrees of freedom, coverage factor | JCGM 100:2008 (GUM) |
+| `uncertainty` | GUM uncertainty budgets: Type A and B components, sensitivity coefficients (analytic or numerical), correlated inputs, Welch–Satterthwaite degrees of freedom, coverage factor, relative uncertainty; Monte Carlo propagation | JCGM 100:2008 (GUM), JCGM 101:2008 (GUM S1) |
 | `validation` | Calibration linearity with confidence intervals, LOD/LOQ, precision (RSD), spike recovery | ICH Q2, Eurachem guide |
 | `proficiency` | z, zeta and E<sub>n</sub> scores with interpretation; robust consensus mean (Algorithm A) | ISO 13528, ISO/IEC 17043 |
 | `control_charts` | Shewhart limits; Westgard rules 1<sub>2s</sub>, 1<sub>3s</sub>, 2<sub>2s</sub>, R<sub>4s</sub>, 4<sub>1s</sub>, 10<sub>x</sub> | Westgard multirule QC |
 | `emissions` | ppm ↔ mg/m³ at standard conditions, correction to reference O₂, wet ↔ dry | Stack-emission practice, e.g. EN 303-5 at 10 % O₂ |
 
-Every function is tested against hand-calculated values (28 tests), and the examples below
+Every function is tested against hand-calculated or published values (46 tests), and the examples below
 run in CI.
 
 ## Example 1: uncertainty of a moisture determination
@@ -70,6 +70,41 @@ C3H8      6.5 ppm  ->     17.2 mg/m3 at 10 % O2
 At high excess air, a raw reading that looks comfortably low can exceed a limit once it is
 corrected to 10 % O₂ ([`examples/boiler_emissions.py`](examples/boiler_emissions.py)).
 
+## Example 4: Monte Carlo and correlated weighings
+
+Version 0.2 adds Monte Carlo propagation (GUM Supplement 1) and correlated inputs
+([`examples/monte_carlo_vs_gum.py`](examples/monte_carlo_vs_gum.py)).
+
+```text
+1. Moisture, M = (m2 - m3) / (m2 - m1) x 100 [%]
+  GUM (linear):  y = 6.971, u = 0.01916, k = 2.77, 95 % interval [6.918, 7.025]
+  Monte Carlo:   y = 6.971, u = 0.02704, 95 % interval [6.917, 7.024]
+
+2. Recovery-corrected result, C = C_meas / R [mg/kg]
+  GUM (linear):  y = 20, u = 3.371, k = 1.96, 95 % interval [13.39, 26.61]
+  Monte Carlo:   y = 20.61, u = 3.843, 95 % interval [14.15, 28.12]
+
+3. Weighings only (no repeatability), r = 0.92 between weighings
+  treated as independent: u = 0.00114 %
+  with shared calibration: u = 0.00031 % (-72%)
+```
+
+For the nearly linear moisture model the two 95 % intervals agree. Monte Carlo's u is larger
+only because a 4-dof Type A input is sampled from a t-distribution; the GUM method puts the
+same widening into k = 2.77. Dividing by an uncertain recovery (R = 0.60 ± 0.10) is
+non-linear: the real distribution is skewed upwards, and the first-order interval is too low
+at both ends. When the three weighings share one balance calibration, most of the offset
+cancels, and the balance contribution falls by 72 %.
+
+```python
+from labqc.uncertainty import Component, monte_carlo, propagate
+
+inputs = {"a": Component("a", 0.1), "b": Component("b", 0.1)}
+y, r = propagate(lambda a, b: a - b, {"a": 5.0, "b": 2.0}, inputs, correlation={("a", "b"): 0.8})
+print(r.summary(relative=True))  # u_c, k, U and u_c/|y|, U/|y|
+print(monte_carlo(lambda a, b: a / b, {"a": 5.0, "b": 2.0}, inputs, seed=1))
+```
+
 ## Use it
 
 ```bash
@@ -101,11 +136,12 @@ ruff check .
 
 ## Scope and limits
 
-- Inputs are treated as uncorrelated. Correlated inputs (for example one balance used for
-  several weighings) need covariance terms, which are not implemented yet. Ignoring a
-  positive correlation between weighings that are subtracted overstates the uncertainty.
-- Sensitivity coefficients are first-order. Strongly non-linear models need a Monte Carlo
-  approach (GUM Supplement 1), which is planned.
+- `propagate()` uses first-order sensitivity coefficients. For strongly non-linear models,
+  use `monte_carlo()` (GUM Supplement 1) and compare.
+- Monte Carlo handles correlation only between normal inputs with infinite degrees of
+  freedom. Welch–Satterthwaite is applied as for independent inputs, even when correlations
+  are given.
+- Units are stored on each component but not checked.
 - This is a calculation aid, not validated software for regulated use. Check results
   against your own procedures.
 

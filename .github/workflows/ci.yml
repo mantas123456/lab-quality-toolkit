@@ -28,3 +28,4 @@ jobs:
           python examples/moisture_uncertainty.py
           python examples/westgard_iqc.py
           python examples/boiler_emissions.py
+          python examples/monte_carlo_vs_gum.py
