@@ -3,6 +3,10 @@
 [![CI](https://github.com/mantas123456/lab-quality-toolkit/actions/workflows/ci.yml/badge.svg)](https://github.com/mantas123456/lab-quality-toolkit/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/labqc)](https://pypi.org/project/labqc/)
 [![Docs](https://img.shields.io/badge/docs-online-blue)](https://mantas123456.github.io/lab-quality-toolkit/)
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://lab-quality-toolkit-3go33hyzzwjhwpktn8tles.streamlit.app)
+
+**Try it in the browser:** [the labqc web app](https://lab-quality-toolkit-3go33hyzzwjhwpktn8tles.streamlit.app) runs every module with example data,
+no installation needed.
 
 The calculations an ISO/IEC 17025 laboratory does every week, usually in spreadsheets,
 written as small, tested Python functions:
@@ -147,6 +151,7 @@ and `ewma()` cover two- and three-level QC and small shifts that Westgard rules 
 ## Web app
 
 A Streamlit app puts every module in the browser, for analysts who do not write Python.
+It runs online at **[lab-quality-toolkit-3go33hyzzwjhwpktn8tles.streamlit.app](https://lab-quality-toolkit-3go33hyzzwjhwpktn8tles.streamlit.app)**.
 Each page opens with the worked examples above already loaded, so the app and the library
 can be checked against each other:
 
