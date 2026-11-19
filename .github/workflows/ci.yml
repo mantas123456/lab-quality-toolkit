@@ -44,7 +44,7 @@ jobs:
         run: python validation/run_validation.py
       - name: Keep the validation report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: validation-report
           path: validation/report.md

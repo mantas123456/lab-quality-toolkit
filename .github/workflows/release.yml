@@ -30,7 +30,7 @@ jobs:
       - name: Validation (reference cases)
         run: python validation/run_validation.py
       - name: Keep the validation report of this release
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: validation-report-${{ github.ref_name }}
           path: validation/report.md
@@ -39,7 +39,7 @@ jobs:
         run: python -m build
       - name: Check package metadata
         run: twine check --strict dist/*
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: dist
           path: dist/
@@ -53,7 +53,7 @@ jobs:
     permissions:
       id-token: write  # trusted publishing: PyPI gets a short-lived token from GitHub
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v7
         with:
           name: dist
           path: dist/
