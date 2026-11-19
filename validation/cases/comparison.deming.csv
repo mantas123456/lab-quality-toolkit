@@ -1,0 +1,4 @@
+case,inputs,output,expected,tolerance,tolerance_type,source_type,source,working
+"equal error variances, slope","{""x"": [0, 1, 2], ""y"": [0, 2, 1]}",slope,1.0,1e-12,abs,hand calculation from the cited formula,"Deming regression formula; Linnet, Clin. Chem. 1990","Sxx = Syy = 2, Sxy = 1: (0 + sqrt(0 + 4)) / 2"
+"equal error variances, intercept","{""x"": [0, 1, 2], ""y"": [0, 2, 1]}",intercept,0.0,1e-12,abs,hand calculation from the cited formula,Deming regression formula,1 - 1 x 1
+"exact line, error ratio 4","{""x"": [1, 2, 4, 7], ""y"": [3, 5, 9, 15], ""error_ratio"": 4.0}",slope,2.0,1e-12,abs,hand calculation from the cited formula,Deming regression formula,points on y = 2x + 1: every error ratio gives slope 2

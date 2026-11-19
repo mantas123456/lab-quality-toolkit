@@ -15,6 +15,11 @@
     "p_kpa": 101.325
   },
   "validation": {
+    "sample_signals": [
+      0.63,
+      0.66,
+      0.61
+    ],
     "replicates": [
       50.4,
       50.7,
@@ -249,6 +254,25 @@
         }
       ]
     }
+  },
+  "outliers": {
+    "values": [
+      25.3,
+      25.1,
+      25.4,
+      25.2,
+      25.0,
+      25.3,
+      25.2,
+      26.4,
+      25.1,
+      25.3
+    ]
+  },
+  "equipment": {
+    "tolerance": 0.3,
+    "unit": "°C",
+    "what": "thermometer at 100 °C"
   },
   "topdown_crm": {
     "results": [

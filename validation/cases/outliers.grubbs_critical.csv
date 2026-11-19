@@ -1,0 +1,7 @@
+case,inputs,output,expected,tolerance,tolerance_type,source_type,source,working
+"n = 4, 5 %","{""n"": 4, ""alpha"": 0.05}",critical,1.481,0.0006,abs,standard table,"ISO 5725-2 Table 5 (Grubbs, one outlier)",tabulated 1.481
+"n = 4, 1 %","{""n"": 4, ""alpha"": 0.01}",critical,1.496,0.0006,abs,standard table,"ISO 5725-2 Table 5 (Grubbs, one outlier)",tabulated 1.496
+"n = 5, 5 %","{""n"": 5, ""alpha"": 0.05}",critical,1.715,0.0006,abs,standard table,"ISO 5725-2 Table 5 (Grubbs, one outlier)",tabulated 1.715
+"n = 5, 1 %","{""n"": 5, ""alpha"": 0.01}",critical,1.764,0.0006,abs,standard table,"ISO 5725-2 Table 5 (Grubbs, one outlier)",tabulated 1.764
+"n = 10, 5 %","{""n"": 10, ""alpha"": 0.05}",critical,2.29,0.0006,abs,standard table,"ISO 5725-2 Table 5 (Grubbs, one outlier)",tabulated 2.29
+"n = 10, 1 %","{""n"": 10, ""alpha"": 0.01}",critical,2.482,0.0006,abs,standard table,"ISO 5725-2 Table 5 (Grubbs, one outlier)",tabulated 2.482

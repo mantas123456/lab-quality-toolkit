@@ -1,0 +1,2 @@
+case,inputs,output,expected,tolerance,tolerance_type,source_type,source,working
+two largest,"{""values"": [1, 2, 3, 9, 10]}",statistic,0.028571,1e-6,abs,hand calculation from the cited formula,"ISO 5725-2, 7.3 (Grubbs and Cochran tests)",S_0 = 70 (mean 5); without 9 and 10: S = 2 (mean 2); 2 / 70

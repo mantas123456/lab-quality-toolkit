@@ -1,0 +1,4 @@
+case,inputs,output,expected,tolerance,tolerance_type,source_type,source,working
+bias,"{""x"": [1, 2, 3, 4], ""y"": [1.1, 2.3, 2.9, 4.2]}",bias,0.125,1e-12,abs,hand calculation from the cited formula,"Bland & Altman, Lancet 1986","d = 0.1, 0.3, -0.1, 0.2; mean 0.125"
+upper limit of agreement,"{""x"": [1, 2, 3, 4], ""y"": [1.1, 2.3, 2.9, 4.2]}",upper,0.459734,1e-6,abs,hand calculation from the cited formula,"Bland & Altman, Lancet 1986",s_d = sqrt(0.0875 / 3) = 0.1707825; 0.125 + 1.96 x 0.1707825
+lower limit of agreement,"{""x"": [1, 2, 3, 4], ""y"": [1.1, 2.3, 2.9, 4.2]}",lower,-0.209734,1e-6,abs,hand calculation from the cited formula,"Bland & Altman, Lancet 1986",0.125 - 1.96 x 0.1707825

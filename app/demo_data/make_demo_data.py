@@ -180,6 +180,20 @@ def budget_templates() -> dict:
     }  # fmt: skip
 
 
+def comparison_data() -> pd.DataFrame:
+    """30 samples measured on the old analyser and a new one (illustrative): the new one
+    reads about 3 % high with a small offset, and both have random error."""
+    import numpy as np
+
+    rng = np.random.default_rng(14)
+    truth = np.sort(rng.uniform(5, 120, 30))
+    old = truth + rng.normal(0, 1.2, 30)
+    new = 1.03 * truth + 0.4 + rng.normal(0, 1.2, 30)
+    return pd.DataFrame(
+        {"sample": [f"S{i:02d}" for i in range(1, 31)], "old": old.round(2), "new": new.round(2)}
+    )
+
+
 def build() -> tuple[dict[str, pd.DataFrame], dict]:
     """Return the demo tables and the scalar example inputs."""
     import boiler_emissions
@@ -299,6 +313,7 @@ def build() -> tuple[dict[str, pd.DataFrame], dict]:
             "p_kpa": 101.325,
         },
         "validation": {
+            "sample_signals": [0.63, 0.66, 0.61],
             "replicates": [50.4, 50.7, 49.1, 49.0, 51.1],
             "recovery": {"measured": 14.5, "unspiked": 5.0, "added": 10.0},
         },
@@ -311,6 +326,11 @@ def build() -> tuple[dict[str, pd.DataFrame], dict]:
             "what": "lead in drinking water against a limit of 10 µg/L (illustrative values)",
         },
         "templates": budget_templates(),
+        "outliers": {
+            # ten replicate results with one high value (illustrative)
+            "values": [25.3, 25.1, 25.4, 25.2, 25.0, 25.3, 25.2, 26.4, 25.1, 25.3],
+        },
+        "equipment": {"tolerance": 0.3, "unit": "°C", "what": "thermometer at 100 °C"},
         "topdown_crm": {"results": [50.9, 51.4, 50.2, 51.8, 50.7], "certified": 50.0, "u": 0.4},
         "pt": {
             "x": 10.75,
@@ -333,6 +353,30 @@ def build() -> tuple[dict[str, pd.DataFrame], dict]:
         "topdown_qc": topdown_qc,
         "topdown_pt": topdown_pt,
         "qc_overview": qc_overview_data(),
+        "comparison": comparison_data(),
+        # eight laboratories' duplicates (illustrative); lab 6 has a much larger spread
+        "outliers_duplicates": pd.DataFrame(
+            {
+                "lab": [f"Lab {i}" for i in range(1, 9)],
+                "rep1": [10.12, 10.05, 9.98, 10.20, 10.08, 10.60, 9.95, 10.11],
+                "rep2": [10.08, 10.11, 10.03, 10.14, 10.02, 9.70, 10.01, 10.15],
+            }
+        ),
+        # thermometer at 100 °C: error on six certificates (illustrative), U from each
+        "equipment": pd.DataFrame(
+            {
+                "date": [
+                    "2020-03-02",
+                    "2021-03-08",
+                    "2022-03-01",
+                    "2023-02-27",
+                    "2024-03-04",
+                    "2025-03-03",
+                ],
+                "error": [0.04, 0.07, 0.09, 0.13, 0.15, 0.19],
+                "U": [0.05, 0.05, 0.05, 0.06, 0.06, 0.06],
+            }
+        ),  # fmt: skip
     }
     return tables, scalars
 

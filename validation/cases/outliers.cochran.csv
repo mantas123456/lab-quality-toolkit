@@ -1,0 +1,2 @@
+case,inputs,output,expected,tolerance,tolerance_type,source_type,source,working
+five duplicate pairs,"{""groups"": [[1, 1.2], [2, 2.1], [3, 3.9], [4, 4.2], [5, 5.05]]}",statistic,0.897507,1e-6,abs,hand calculation from the cited formula,"ISO 5725-2, 7.3 (Grubbs and Cochran tests)","variances d^2 / 2: 0.02, 0.005, 0.405, 0.02, 0.00125; C = 0.405 / 0.45125"

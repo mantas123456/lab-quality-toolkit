@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import math
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import numpy as np
 import pandas as pd
@@ -63,6 +63,8 @@ class Linearity:
     weighting: str = "none"
     weighted_residuals: np.ndarray | None = None
     lack_of_fit: LackOfFit | None = None
+    x: np.ndarray | None = field(default=None, repr=False)  # the standards' concentrations
+    y: np.ndarray | None = field(default=None, repr=False)  # their signals
 
     def predict_concentration(self, signal: float) -> float:
         return (signal - self.intercept) / self.slope
@@ -166,7 +168,54 @@ def linearity(
         weighting=label,
         weighted_residuals=np.sqrt(w) * resid,
         lack_of_fit=lack_of_fit(x, y, weights),
+        x=x,
+        y=y,
     )
+
+
+@dataclass(frozen=True)
+class InversePrediction:
+    """A concentration read back from a calibration line, with its standard uncertainty."""
+
+    x0: float
+    u_x0: float
+    y0_mean: float
+    m: int
+    dof: int
+
+    def interval(self, coverage: float = 0.95) -> tuple[float, float]:
+        """x0 -/+ t(dof) * u_x0, the confidence interval of Miller & Miller."""
+        t = float(stats.t.ppf(0.5 + coverage / 2, self.dof))
+        return self.x0 - t * self.u_x0, self.x0 + t * self.u_x0
+
+
+def inverse_prediction(cal: Linearity, y_readings: Sequence[float]) -> InversePrediction:
+    """Concentration of a sample from m replicate signal readings, and its uncertainty.
+
+    x0 = (y0 - a) / b with y0 the mean of the m readings, and the standard formula for
+    an unweighted line (e.g. Miller & Miller, Statistics and Chemometrics for
+    Analytical Chemistry, section 5.6):
+
+        s_x0 = (s_y/x / b) * sqrt(1/m + 1/n + (y0 - y_mean)^2 / (b^2 * sum((x_i - x_mean)^2)))
+
+    with n calibration points and n - 2 degrees of freedom. Only for unweighted lines.
+    """
+    if cal.x is None or cal.y is None:
+        raise ValueError("this calibration has no stored standards; fit it with linearity()")
+    if cal.weighting != "none":
+        raise ValueError("inverse prediction here is for unweighted lines only")
+    readings = np.asarray(y_readings, dtype=float)
+    if readings.size < 1 or not np.isfinite(readings).all():
+        raise ValueError("give at least one signal reading")
+    if cal.slope == 0:
+        raise ValueError("the calibration slope is 0")
+    y0 = float(readings.mean())
+    m = int(readings.size)
+    x0 = (y0 - cal.intercept) / cal.slope
+    sxx = float(np.sum((cal.x - cal.x.mean()) ** 2))
+    term = (y0 - float(cal.y.mean())) ** 2 / (cal.slope**2 * sxx)
+    u = cal.residual_sd / abs(cal.slope) * math.sqrt(1 / m + 1 / cal.n + term)
+    return InversePrediction(x0, u, y0, m, cal.n - 2)
 
 
 def lod_loq(cal: Linearity, blank_sd: float | None = None) -> tuple[float, float]:

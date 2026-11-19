@@ -50,6 +50,14 @@ EXAMPLES: dict[str, tuple[str, str, str]] = {
         "pages/2_Method_validation.py", "Method validation",
         "calibration line, LOD/LOQ, precision and recovery",
     ),
+    "outliers": (
+        "pages/2_Method_validation.py", "Method validation",
+        "Grubbs tests on ten replicates and Cochran's test on eight labs' duplicates",
+    ),
+    "method-comparison": (
+        "pages/2_Method_validation.py", "Method validation",
+        "30 samples on an old and a new analyser: Bland-Altman and Passing-Bablok",
+    ),
     "pt-round": (
         "pages/3_Proficiency_testing.py", "Proficiency testing",
         "z, zeta and En for one result, and a round of 15 labs",
@@ -87,6 +95,10 @@ EXAMPLES: dict[str, tuple[str, str, str]] = {
     "decision-guarded": (
         "pages/7_Decision_rules.py", "Decision rules",
         "the same result with a guard band w = U (non-binary statement)",
+    ),
+    "equipment-drift": (
+        "pages/8_Equipment_drift.py", "Equipment drift",
+        "a thermometer's error on six certificates against a tolerance of 0.3 °C",
     ),
 }  # fmt: skip
 

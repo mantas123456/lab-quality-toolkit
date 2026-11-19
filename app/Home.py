@@ -23,7 +23,8 @@ pages = [
     (
         "pages/2_Method_validation.py",
         "Method validation",
-        "Calibration line, residuals, LOD/LOQ, precision and recovery.",
+        "Calibration, LOD/LOQ, precision, recovery, a sample read back from the line; "
+        "outlier tests; method comparison.",
     ),
     (
         "pages/3_Proficiency_testing.py",
@@ -51,7 +52,12 @@ pages = [
         "Pass or fail with uncertainty: simple acceptance or a guard band (ILAC G8).",
     ),
     (
-        "pages/8_Reports.py",
+        "pages/8_Equipment_drift.py",
+        "Equipment drift",
+        "Error against time from calibration certificates; when to recalibrate.",
+    ),
+    (
+        "pages/9_Reports.py",
         "Reports",
         "PDF, Excel and JSON records of your results; reload a saved budget.",
     ),

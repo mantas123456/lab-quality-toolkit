@@ -33,9 +33,12 @@ import pandas as pd  # noqa: E402
 import scipy  # noqa: E402
 
 import labqc  # noqa: E402
+from labqc import comparison as cmp  # noqa: E402
 from labqc import conformity as cf  # noqa: E402
 from labqc import control_charts as cc  # noqa: E402
 from labqc import emissions as em  # noqa: E402
+from labqc import equipment as eq  # noqa: E402
+from labqc import outliers as ol  # noqa: E402
 from labqc import proficiency as pt  # noqa: E402
 from labqc import topdown as td  # noqa: E402
 from labqc import uncertainty as unc  # noqa: E402
@@ -48,6 +51,9 @@ NOT_VALIDATED = {
     "emissions.register_gas": "configuration; conversions validated via ppm_to_mg_m3",
     "report.*": "records and file output, no calculation; covered by unit tests",
     "proficiency.robust_mean_sd": "no citable reference case yet: see TO_CHECK.md",
+    "outliers.grubbs_two_critical": "simulated critical values; compared with ISO 5725-2 "
+    "in the unit tests and TO_CHECK.md",
+    "outliers.cochran_critical": "F-distribution formula; table comparison in TO_CHECK.md",
     "control_charts.qc_overview": "groups results and reads westgard's last row; westgard and "
     "limits_from_data are validated, the grouping is covered by unit tests",
 }
@@ -128,6 +134,33 @@ def _u_bias(b: td.Bias) -> dict:
 def _combine_topdown(i: dict) -> dict:
     r = td.combine_topdown(i["u_rw"], i["u_bias"], k=i.get("k", 2.0))
     return {"u_c": r.combined, "U": r.expanded}
+
+
+def _outlier(t) -> dict:
+    return {"statistic": t.statistic, "label": t.label}
+
+
+def _bland_altman(i: dict) -> dict:
+    ba = cmp.bland_altman(i["x"], i["y"])
+    return {"bias": ba.bias, "lower": ba.loa[0], "upper": ba.loa[1]}
+
+
+def _line(line) -> dict:
+    return {"slope": line.slope, "intercept": line.intercept}
+
+
+def _inverse(i: dict) -> dict:
+    r = val.inverse_prediction(val.linearity(i["x"], i["y"]), i["y0"])
+    return {"x0": r.x0, "u_x0": r.u_x0}
+
+
+def _drift(i: dict) -> dict:
+    d = eq.drift(**i)
+    return {
+        "drift_per_year": d.drift_per_year,
+        "t_reach_years": d.t_reach_years,
+        "suggestion": d.suggestion,
+    }
 
 
 def _linearity(i: dict) -> dict:
@@ -256,6 +289,15 @@ ADAPTERS: dict[str, Callable[[dict], dict]] = {
     "topdown.u_bias_pt": lambda i: _u_bias(td.u_bias_pt(**i)),
     "topdown.u_bias_crm": lambda i: _u_bias(td.u_bias_crm(**i)),
     "topdown.combine_topdown": _combine_topdown,
+    "outliers.grubbs_critical": lambda i: {"critical": ol.grubbs_critical(**i)},
+    "outliers.grubbs": lambda i: _outlier(ol.grubbs(i["values"])),
+    "outliers.grubbs_two": lambda i: _outlier(ol.grubbs_two(i["values"])),
+    "outliers.cochran": lambda i: _outlier(ol.cochran(i["groups"])),
+    "comparison.bland_altman": _bland_altman,
+    "comparison.deming": lambda i: _line(cmp.deming(**i)),
+    "comparison.passing_bablok": lambda i: _line(cmp.passing_bablok(**i)),
+    "validation.inverse_prediction": _inverse,
+    "equipment.drift": _drift,
     "emissions.corrected_uncertainty": lambda i: {"u_c": em.corrected_uncertainty(**i)[1].combined},
 }
 
@@ -335,6 +377,9 @@ def public_functions() -> list[str]:
         "emissions",
         "conformity",
         "topdown",
+        "outliers",
+        "comparison",
+        "equipment",
     ):
         mod = getattr(labqc, module)
         for name, obj in vars(mod).items():

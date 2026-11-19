@@ -36,6 +36,9 @@ nav:
       - emissions: api/emissions.md
       - conformity: api/conformity.md
       - topdown: api/topdown.md
+      - outliers: api/outliers.md
+      - comparison: api/comparison.md
+      - equipment: api/equipment.md
       - report: api/report.md
   - Worked examples: examples.md
   - Validation report: validation.md

@@ -332,3 +332,74 @@ def qc_overview(overview) -> list[str]:
         names = [f"{m} / {lv}" for m, lv in warnings[["method", "level"]].values]
         parts.append(f"Warning only (1_2s): {_join(names)}; check, no action on its own.")
     return parts
+
+
+def outliers(g1, g2, cochran_test, group: str) -> list[str]:
+    """For labqc.outliers results: what is flagged and what ISO 5725-2 says to do."""
+    if g1.label != "ok":
+        first = (
+            f"{g1.suspect[0]:g} is {_article(g1.label)} by the one-value Grubbs test "
+            f"(G = {g1.statistic:.3f} > {g1.critical_95:.3f})."
+        )
+    elif g2.label != "ok":
+        first = (
+            f"{' and '.join(f'{v:g}' for v in g2.suspect)} together are "
+            f"{_article(g2.label)} by the two-value Grubbs test, though neither stands out alone."
+        )
+    else:
+        first = "Neither Grubbs test flags a result."
+    if cochran_test.label != "ok":
+        first += (
+            f" {group} has the largest spread and is {_article(cochran_test.label)} by "
+            f"Cochran's test (C = {cochran_test.statistic:.3f})."
+        )
+    second = (
+        "Investigate a straggler or outlier and exclude it only with a technical reason; "
+        "ISO 5725-2 uses the two-value test when the one-value test finds nothing."
+    )
+    return [first, second]
+
+
+def _article(word: str) -> str:
+    return f"{'an' if word[0] in 'aeiou' else 'a'} {word}"
+
+
+def comparison(ba, line, method: str) -> list[str]:
+    """For a Bland-Altman analysis and a comparison line."""
+    first = (
+        f"On average the new method reads {abs(ba.bias):.3g} {'higher' if ba.bias > 0 else 'lower'}"
+        f"; 95 % of the differences lie between {ba.loa[0]:.3g} and {ba.loa[1]:.3g}."
+    )
+    lo_b, hi_b = line.slope_ci95
+    lo_a, hi_a = line.intercept_ci95
+    if line.agrees:
+        second = (
+            f"The {method} line is consistent with y = x: the slope interval "
+            f"({lo_b:.3f} to {hi_b:.3f}) holds 1 and the intercept interval holds 0."
+        )
+    elif not lo_b <= 1 <= hi_b:
+        second = (
+            f"The {method} slope interval ({lo_b:.3f} to {hi_b:.3f}) excludes 1: a "
+            f"proportional difference of about {abs(line.slope - 1):.1%}."
+        )
+    else:
+        second = (
+            f"The {method} intercept interval ({lo_a:.3g} to {hi_a:.3g}) excludes 0: a "
+            "constant difference between the methods."
+        )
+    return [first, second]
+
+
+def drift(d, unit: str = "") -> list[str]:
+    """For labqc.equipment.drift."""
+    u = f" {unit}" if unit else ""
+    first = f"The error changes by {d.drift_per_year:+.3g}{u} per year."
+    if d.reach_date is None:
+        first += " With no drift, it is not predicted to reach the tolerance."
+    else:
+        first += f" |error| + U is predicted to reach the tolerance on {d.reach_date:%d %b %Y}."
+    second = (
+        f"Suggestion: {d.suggestion} the interval ({d.suggested_interval_years:.2g} years). "
+        + d.reason
+    )
+    return [first, second]

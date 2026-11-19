@@ -160,7 +160,7 @@ def test_saved_budget_reloads_into_the_uncertainty_page():
 
     at = AppTest.from_file(str(ROOT / "app" / "Home.py"), default_timeout=60).run()
     at.session_state["report_loaded"] = RunRecord.from_json(saved)
-    at.switch_page("pages/8_Reports.py").run()
+    at.switch_page("pages/9_Reports.py").run()
     _button(at, "Open this budget in Uncertainty budget").click().run()
     assert not at.exception
     assert not at.error
@@ -187,9 +187,10 @@ def explanations(at: AppTest) -> list[str]:
 
 
 EXAMPLE_NAMES = [
-    "moisture", "moisture-shared-balance", "calibration", "pt-round", "pt-history",
+    "moisture", "moisture-shared-balance", "calibration", "outliers", "method-comparison",
+    "pt-round", "pt-history",
     "westgard", "westgard-levels", "cusum", "ewma", "qc-overview", "boiler", "topdown", "decision",
-    "decision-guarded",
+    "decision-guarded", "equipment-drift",
 ]  # fmt: skip
 
 
@@ -333,7 +334,7 @@ DECISION = page_file("Decision_rules")
 def test_pages_are_in_menu_order():
     assert [p.stem.split("_", 1)[1] for p in PAGES] == [
         "Uncertainty_budget", "Method_validation", "Proficiency_testing", "QC_charts",
-        "QC_overview", "Emissions", "Decision_rules", "Reports",
+        "QC_overview", "Emissions", "Decision_rules", "Equipment_drift", "Reports",
     ]  # fmt: skip
 
 
@@ -481,7 +482,7 @@ def test_inputs_survive_a_visit_to_another_page():
     at = AppTest.from_file(str(ROOT / "app" / "Home.py"), default_timeout=60).run()
     at.switch_page("pages/7_Decision_rules.py").run()
     at.number_input(key="dec_value").set_value(9.9).run()
-    at.switch_page("pages/8_Reports.py").run()
+    at.switch_page("pages/9_Reports.py").run()
     at.switch_page("pages/7_Decision_rules.py").run()
     assert at.session_state["dec_value"] == 9.9
 
@@ -489,3 +490,95 @@ def test_inputs_survive_a_visit_to_another_page():
 def test_save_project_button_in_the_sidebar():
     at = run(EMISSIONS)
     assert "Save project" in [b.label for b in at.get("download_button")]
+
+
+# --- v1.4: outlier tests, method comparison, inverse prediction, equipment drift ----------
+
+EQUIPMENT = page_file("Equipment_drift")
+
+
+def test_validation_page_tabs():
+    at = run(VALIDATION)
+    assert [t.label for t in at.tabs] == [
+        "Calibration and precision", "Outlier tests", "Method comparison",
+    ]  # fmt: skip
+
+
+def test_inverse_prediction_matches_the_library():
+    from common import demo_table, examples
+
+    from labqc.validation import inverse_prediction, linearity
+
+    cal_data = demo_table("calibration")
+    cal = linearity(cal_data["concentration"], cal_data["signal"])
+    expected = inverse_prediction(cal, examples()["validation"]["sample_signals"])
+    at = run_example("calibration")
+    assert metric(at, "Sample concentration x0") == f"{expected.x0:.4g}"
+    assert metric(at, "u(x0)") == f"{expected.u_x0:.3g}"
+
+
+def test_outlier_tab_matches_the_library():
+    from common import demo_table, examples
+
+    from labqc.outliers import cochran, grubbs
+
+    g1 = grubbs(examples()["outliers"]["values"])
+    groups = demo_table("outliers_duplicates")
+    ch = cochran(groups[["rep1", "rep2"]].to_numpy().tolist())
+    at = run_example("outliers")
+    assert metric(at, "Grubbs, one value: G") == f"{g1.statistic:.3f}"
+    assert metric(at, "Cochran C") == f"{ch.statistic:.3f}"
+    assert any("Lab 6" in m.value for m in at.markdown)
+    next(b for b in at.button if b.key == "ol_report").click().run()
+    assert at.session_state["records"][-1].function == "labqc.outliers"
+
+
+def test_outlier_tab_bad_input_is_a_plain_error():
+    at = run_example("outliers")
+    at.text_area(key="ol_values").input("1, 2").run()
+    assert not at.exception
+    assert at.error[0].value == "the test needs at least 3 values"
+
+
+def test_comparison_tab_matches_the_library():
+    from common import demo_table
+
+    from labqc.comparison import bland_altman, deming, passing_bablok
+
+    data = demo_table("comparison")
+    ba = bland_altman(data["old"], data["new"])
+    pb = passing_bablok(data["old"], data["new"])
+    at = run_example("method-comparison")
+    assert metric(at, "Bias (y − x)") == f"{ba.bias:.3g}"
+    assert metric(at, "Comparison slope") == f"{pb.slope:.4f}"
+    at.radio(key="cmp_method").set_value("Deming").run()
+    assert metric(at, "Comparison slope") == f"{deming(data['old'], data['new']).slope:.4f}"
+    next(b for b in at.button if b.key == "cmp_report").click().run()
+    assert at.session_state["records"][-1].settings["regression"] == "Deming"
+
+
+def test_comparison_same_column_is_a_plain_error():
+    at = run_example("method-comparison")
+    at.selectbox(key="cmp_y").set_value("old").run()
+    assert not at.exception
+    assert at.error[0].value == "Choose two different columns for x and y"
+
+
+def test_equipment_page_matches_the_library():
+    from common import demo_table, examples
+
+    from labqc.equipment import drift
+
+    data = demo_table("equipment")
+    d = drift(data["date"], data["error"], data["U"], examples()["equipment"]["tolerance"])
+    at = run_example("equipment-drift")
+    assert metric(at, "Drift per year") == f"{d.drift_per_year:+.3g} °C"
+    assert metric(at, "Reaches the tolerance") == str(d.reach_date)
+    assert any(d.suggestion in m.value for m in at.markdown)
+
+
+def test_equipment_dates_out_of_order_are_a_plain_error():
+    at = run(EQUIPMENT)
+    at.number_input(key="eq_tolerance").set_value(0.0).run()
+    assert not at.exception
+    assert at.error[0].value == "the tolerance must be greater than 0"

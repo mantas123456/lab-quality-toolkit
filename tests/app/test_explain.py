@@ -137,3 +137,37 @@ def test_topdown_wording():
     assert (
         "Within-lab reproducibility gives 80%" in explain.topdown(table, True, 5.1, 2.0, "CRM")[0]
     )
+
+
+def test_outlier_wording():
+    from labqc.outliers import cochran, grubbs, grubbs_two
+
+    values = [25.3, 25.1, 25.4, 25.2, 25.0, 25.3, 25.2, 26.4, 25.1, 25.3]
+    ch = cochran([[1, 1.1], [2, 2.1], [3, 3.05], [4, 4.1]])
+    text = explain.outliers(grubbs(values), grubbs_two(values), ch, "Lab 3")
+    assert text[0].startswith("26.4 is an outlier by the one-value Grubbs test")
+    assert "technical reason" in text[1]
+    calm = [10.0, 10.1, 9.9, 10.05, 9.95]
+    assert explain.outliers(grubbs(calm), grubbs_two(calm), ch, "x")[0].startswith(
+        "Neither Grubbs test"
+    )
+
+
+def test_comparison_wording():
+    from labqc.comparison import bland_altman, passing_bablok
+
+    x = [float(v) for v in range(1, 21)]
+    y = [1.05 * v for v in x]
+    text = explain.comparison(bland_altman(x, y), passing_bablok(x, y), "Passing-Bablok")
+    assert "reads" in text[0] and "higher" in text[0]
+    assert "excludes 1" in text[1] and "5.0%" in text[1]
+
+
+def test_drift_wording():
+    from labqc.equipment import drift
+
+    d = drift(["2000-01-01", "2004-01-01"], [0.10, 0.18], U=0.05, tolerance=0.3)
+    text = explain.drift(d, "°C")
+    assert text[0].startswith("The error changes by +0.02 °C per year.")
+    assert "02 Jul 2007" in text[0]
+    assert text[1].startswith("Suggestion: shorten the interval (3.5 years).")

@@ -22,9 +22,12 @@ written as small, tested Python functions:
 | `emissions` | ppm ↔ mg/m³ at standard conditions, correction to reference O₂ and its uncertainty, wet ↔ dry, user-defined gases | Stack-emission practice, e.g. EN 303-5 at 10 % O₂ |
 | `conformity` | Decision rules for pass/fail statements with uncertainty: simple acceptance, guarded acceptance and rejection, non-binary statements with a guard band; probability of conformance; suggested report wording | ILAC G8:09/2019, JCGM 106:2012 |
 | `topdown` | Top-down uncertainty: u(Rw) from QC data (plus duplicates), u(bias) from PT rounds or a CRM, u_c and U | Nordtest TR 537 |
+| `outliers` | Grubbs tests for one and two outliers, Cochran's test for the largest variance; critical values at 5 % and 1 %; ok / straggler / outlier | ISO 5725-2 |
+| `comparison` | Method comparison: Bland–Altman bias and limits of agreement with confidence intervals; Deming regression (error ratio, jackknife intervals); Passing–Bablok regression with confidence intervals and linearity test | Bland & Altman 1986; Linnet 1990; Passing & Bablok 1983 |
+| `equipment` | Drift from successive calibration certificates, when the error reaches the tolerance, and a stated rule to shorten, keep or lengthen the interval | ILAC-G24 / OIML D 10 (calibration history) |
 | `report` | Run records (inputs, settings, result, method, labqc version, UTC time, analyst) saved as JSON and reloaded; Excel workbook and one-page PDF reports | ISO/IEC 17025 7.5 (technical records) |
 
-Every function is tested against hand-calculated values or textbook worked examples (127 library tests, plus 101 for the web app and its browser build),
+Every function is tested against hand-calculated values or textbook worked examples (152 library tests, plus 122 for the web app and its browser build),
 and the examples below run in CI.
 <!-- --8<-- [end:modules] -->
 
@@ -166,11 +169,12 @@ can be checked against each other:
 | Page | What it does |
 |---|---|
 | Uncertainty budget | Start from a template (weighing, volumetric dilution, oven-dry moisture, O₂ reference correction, each with where its numbers usually come from) or edit or upload (CSV) the components and optional correlations between them; result card y ± U with k and v_eff; budget table and a chart of each component's share of variance; *Check with Monte Carlo* compares the GUM interval with a JCGM 101 Monte Carlo interval; a *Top-down* tab builds U from QC data and PT rounds or a CRM (Nordtest TR 537) |
-| Method validation | Calibration line (ordinary or weighted) with residual plot and lack-of-fit test, LOD/LOQ, precision, recovery |
+| Method validation | Tabs: calibration and precision (with a sample's concentration and its uncertainty read back from the line); outlier tests (Grubbs, Cochran); method comparison (Bland–Altman plot, Passing–Bablok or Deming line against y = x). Calibration line (ordinary or weighted) with residual plot and lack-of-fit test, LOD/LOQ, precision, recovery |
 | Proficiency testing | z, zeta and E<sub>n</sub> with coloured status; robust mean and SD of a round (Algorithm A); a *PT history* tab with your z-scores over rounds and the warning signals marked |
 | QC overview | One CSV with several methods and control levels: a grid coloured accept / warning / reject by the latest run, with the rule broken; click a cell for its chart or open the series in QC charts |
 | QC charts | CSV of control results; tabs for Westgard (Levey-Jennings chart, or the rules across two or three control levels), CUSUM and EWMA |
 | Emissions | ppm or mg/m³ (standard or actual conditions), wet or dry, corrected to reference O₂, % of the limit |
+| Equipment drift | Certificates (date, error, U) and a tolerance: drift per year, when \|error\| + U reaches the tolerance, and a suggested calibration interval |
 | Decision rules | Result, U and limits; simple acceptance or a guard band; the decision, the probability of conformance, a picture of the result against the limits and guard bands, and suggested report wording |
 | Reports | Results added with *Add to report* on any page: one PDF per result, one Excel workbook, JSON records; reload a saved budget into the Uncertainty page |
 
@@ -185,6 +189,9 @@ example loaded:
 |---|---|
 | [`?example=moisture`](https://lab-quality-toolkit-3go33hyzzwjhwpktn8tles.streamlit.app/Uncertainty_budget?example=moisture) | Moisture budget (Example 1) |
 | [`?example=moisture-shared-balance`](https://lab-quality-toolkit-3go33hyzzwjhwpktn8tles.streamlit.app/Uncertainty_budget?example=moisture-shared-balance) | The same budget with the three weighings correlated (one balance) |
+| [`?example=outliers`](https://lab-quality-toolkit-3go33hyzzwjhwpktn8tles.streamlit.app/Method_validation?example=outliers) | Grubbs and Cochran tests |
+| [`?example=method-comparison`](https://lab-quality-toolkit-3go33hyzzwjhwpktn8tles.streamlit.app/Method_validation?example=method-comparison) | Old and new analyser on 30 samples |
+| [`?example=equipment-drift`](https://lab-quality-toolkit-3go33hyzzwjhwpktn8tles.streamlit.app/Equipment_drift?example=equipment-drift) | A thermometer's drift and its calibration interval |
 | [`?example=calibration`](https://lab-quality-toolkit-3go33hyzzwjhwpktn8tles.streamlit.app/Method_validation?example=calibration) | Calibration line, LOD/LOQ, precision and recovery |
 | [`?example=pt-round`](https://lab-quality-toolkit-3go33hyzzwjhwpktn8tles.streamlit.app/Proficiency_testing?example=pt-round) | z, zeta and E<sub>n</sub>, and a round of 15 labs |
 | [`?example=pt-history`](https://lab-quality-toolkit-3go33hyzzwjhwpktn8tles.streamlit.app/Proficiency_testing?example=pt-history) | z-scores of 14 PT rounds with the warning signals |

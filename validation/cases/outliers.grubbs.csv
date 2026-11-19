@@ -1,0 +1,3 @@
+case,inputs,output,expected,tolerance,tolerance_type,source_type,source,working
+largest value,"{""values"": [1, 2, 3, 4, 10]}",statistic,1.697056,1e-6,abs,hand calculation from the cited formula,"ISO 5725-2, 7.3 (Grubbs and Cochran tests)","mean 4, s = sqrt(50 / 4) = 3.5355; G = (10 - 4) / 3.5355"
+"largest value, label","{""values"": [1, 2, 3, 4, 10]}",label,"""ok""",,,hand calculation from the cited formula,"ISO 5725-2, 7.3 (Grubbs and Cochran tests)","1.697 < 1.715 (n = 5, 5 %)"

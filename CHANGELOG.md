@@ -1,5 +1,33 @@
 # Changelog
 
+## 1.4.0 – more lab methods
+
+### Added
+- `labqc.outliers` (ISO 5725-2): `grubbs` (one value), `grubbs_two` (two values, either
+  end), `cochran` (largest variance), each with critical values at 5 % and 1 % and a label
+  ok / straggler / outlier. Grubbs single and Cochran critical values come from the t and F
+  distributions; the two-value Grubbs critical values are simulated (fixed seed).
+- `labqc.comparison`: `bland_altman` (bias, limits of agreement and their confidence
+  intervals), `deming` (error ratio, jackknife intervals), `passing_bablok` (rank-based
+  intervals and the cusum linearity test); `Line.agrees` checks consistency with y = x.
+- `labqc.validation.inverse_prediction`: a sample's concentration and its standard
+  uncertainty from m replicate readings on an unweighted line; `Linearity` now keeps the
+  standards (`x`, `y`).
+- `labqc.equipment.drift`: drift per year from successive certificates, when |error| + U is
+  predicted to reach the tolerance, and a stated rule to shorten, keep or lengthen the
+  calibration interval.
+- 27 validation cases: Grubbs critical values from ISO 5725-2 Table 5, the Miller & Miller
+  calibration example for inverse prediction, and hand calculations; table comparisons still
+  to confirm are in `validation/TO_CHECK.md`.
+- Web app: tabs *Outlier tests* and *Method comparison* on the Method validation page, a
+  sample read back from the calibration line, and an *Equipment drift* page. Example links
+  `outliers`, `method-comparison`, `equipment-drift`. The project file keeps their inputs.
+- Docs pages for the three modules, linked to handbook chapters 7.2 and 6.4.
+
+### Changed
+- The Reports page file is `app/pages/9_Reports.py` (its address is unchanged).
+- Version 1.4.0. No new dependencies.
+
 ## 1.3.0 – browser version, QC overview, templates, project file
 
 ### Added

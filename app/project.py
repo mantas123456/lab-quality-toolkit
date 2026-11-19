@@ -43,7 +43,8 @@ PAGES: dict[str, tuple[str, ...]] = {
     ),
     "validation": (
         "val_table", "val_weights", "val_blank_sd", "val_replicates", "val_measured",
-        "val_unspiked", "val_added",
+        "val_unspiked", "val_added", "val_samples", "ol_values", "ol_groups", "cmp_table",
+        "cmp_x", "cmp_y", "cmp_method", "cmp_ratio",
     ),
     "proficiency": (
         "pt_x", "pt_assigned", "pt_sigma_pt", "pt_u_x", "pt_u_assigned", "pt_U_x",
@@ -57,6 +58,7 @@ PAGES: dict[str, tuple[str, ...]] = {
     "emissions": (
         "em_table", "em_o2_measured", "em_o2_ref", "em_water_vol_fraction", "em_t_c", "em_p_kpa",
     ),
+    "equipment": ("eq_table", "eq_tolerance", "eq_unit", "eq_interval"),
     "decision": (
         "dec_value", "dec_U", "dec_k", "dec_unit", "dec_has_lower", "dec_lower",
         "dec_has_upper", "dec_upper", "dec_rule", "dec_r",
@@ -65,7 +67,7 @@ PAGES: dict[str, tuple[str, ...]] = {
 
 # Counters in the pages' data-editor keys; bumping them makes the editors show loaded tables.
 EDITOR_VERSIONS = ("unc_version", "td_version", "val_version", "pt_version", "pt_hist_version",
-                   "em_version")  # fmt: skip
+                   "em_version", "ol_version", "cmp_version", "eq_version")  # fmt: skip
 
 EDITED = "__edited"  # suffix of the key that holds a data editor's current (edited) table
 
