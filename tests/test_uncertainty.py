@@ -294,3 +294,74 @@ def test_components_from_table_errors(change, message):
         components_from_table(pd.DataFrame({**row, **change}))
     with pytest.raises(ValueError, match="needs the column"):
         components_from_table(pd.DataFrame({"name": ["a"]}))
+
+
+# --- v1.1: Monte Carlo check of a budget table -----------------------------------
+
+
+def test_monte_carlo_budget_matches_combine_for_normal_inputs():
+    from labqc.uncertainty import monte_carlo_budget
+
+    comps = [Component("a", 0.3), Component("b", 0.4, sensitivity=-2.0)]
+    gum = combine(comps)
+    mc = monte_carlo_budget(comps, value=10.0, seed=3)
+    assert mc.mean == pytest.approx(10.0, abs=0.01)
+    assert mc.standard_uncertainty == pytest.approx(gum.combined, rel=0.01)
+    assert mc.high - 10.0 == pytest.approx(gum.expanded, rel=0.01)
+
+
+def test_monte_carlo_budget_uses_correlation():
+    from labqc.uncertainty import monte_carlo_budget
+
+    comps = [Component("a", 1.0), Component("b", 1.0, sensitivity=-1.0)]
+    mc = monte_carlo_budget(comps, correlation={("a", "b"): 1.0}, n=10_000, seed=0)
+    assert mc.standard_uncertainty == pytest.approx(0.0, abs=1e-9)  # the shared error cancels
+
+
+def test_monte_carlo_budget_needs_components():
+    from labqc.uncertainty import monte_carlo_budget
+
+    with pytest.raises(ValueError, match="budget is empty"):
+        monte_carlo_budget([])
+
+
+@pytest.mark.parametrize(
+    ("u", "n_dig", "delta"),
+    [(2.0, 2, 0.05), (0.0191, 2, 0.0005), (0.0191, 1, 0.005), (0.0996, 2, 0.005), (153, 2, 5)],
+)
+def test_numerical_tolerance(u, n_dig, delta):
+    from labqc.uncertainty import numerical_tolerance
+
+    assert numerical_tolerance(u, n_dig) == pytest.approx(delta)
+
+
+def test_numerical_tolerance_rejects_bad_input():
+    from labqc.uncertainty import numerical_tolerance
+
+    with pytest.raises(ValueError, match="positive"):
+        numerical_tolerance(0.0)
+    with pytest.raises(ValueError, match="n_dig"):
+        numerical_tolerance(1.0, 0)
+
+
+def test_compare_with_monte_carlo_by_hand():
+    """GUM [90, 110] against Monte Carlo [89.97, 110.02] with u(y) = 5.01: delta = 0.05."""
+    from labqc.uncertainty import MonteCarloResult, compare_with_monte_carlo
+
+    result = combine([Component("a", 3.0), Component("b", 4.0)], k=2)
+    mc = MonteCarloResult(100.0, 5.01, 89.97, 110.02, 0.95, np.empty(0))
+    a = compare_with_monte_carlo(100.0, result, mc)
+    assert (a.gum_low, a.gum_high) == pytest.approx((90.0, 110.0))
+    assert (a.d_low, a.d_high, a.delta) == pytest.approx((0.03, 0.02, 0.05))
+    assert a.agrees
+    wide = MonteCarloResult(100.4, 5.3, 90.9, 111.2, 0.95, np.empty(0))
+    assert not compare_with_monte_carlo(100.0, result, wide).agrees
+
+
+def test_compare_with_monte_carlo_needs_same_coverage():
+    from labqc.uncertainty import MonteCarloResult, compare_with_monte_carlo
+
+    result = combine([Component("a", 1.0)], coverage=0.95)
+    mc = MonteCarloResult(0.0, 1.0, -2.6, 2.6, 0.99, np.empty(0))
+    with pytest.raises(ValueError, match="coverage differs"):
+        compare_with_monte_carlo(0.0, result, mc)

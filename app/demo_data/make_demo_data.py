@@ -74,6 +74,21 @@ def build() -> tuple[dict[str, pd.DataFrame], dict]:
         }
     )
 
+    # 2b. a second control level run with the same samples: low level, with the same shift
+    #     in SD units from day 45, so the two-level Westgard rules see it on both materials
+    import numpy as np
+
+    rng = np.random.default_rng(3)
+    low = rng.normal(10.0, 0.25, 50)
+    low[44:] += 0.45
+    qc_levels = pd.concat(
+        [
+            pd.DataFrame({"day": qc["day"], "level": "low", "value": low}),
+            pd.DataFrame({"day": qc["day"], "level": "high", "value": qc["value"]}),
+        ],
+        ignore_index=True,
+    )
+
     # validation and PT have no script in examples/; these are small illustrative sets
     calibration = pd.DataFrame(
         {
@@ -91,8 +106,20 @@ def build() -> tuple[dict[str, pd.DataFrame], dict]:
         }
     )  # fmt: skip
 
+    # PT history: z-scores of 14 quarterly rounds (the pt_history validation case)
+    pt_hist = pd.DataFrame(
+        {
+            "date": [f"{2023 + q // 4}-{3 * (q % 4) + 1:02d}-15" for q in range(14)],
+            "z": [0.3, -0.5, 2.4, -2.2, 0.1, 0.4, 0.8, 0.2, 1.1, 0.6, 0.3, 0.9, 0.5, -3.1],
+        }
+    )
+
+    # the three weighings share one balance calibration (examples/monte_carlo_vs_gum.py)
+    u_cal, u_res = 0.001, 0.0005 / 3**0.5
+    r_shared = u_cal**2 / (u_cal**2 + u_res**2)
+
     scalars = {
-        "moisture": {"y": moisture.M, "unit": "%"},
+        "moisture": {"y": moisture.M, "unit": "%", "r_shared_balance": r_shared},
         "qc": {"baseline_points": len(westgard_iqc.baseline)},
         "emissions": {
             "o2_measured": boiler_emissions.o2_measured,
@@ -121,6 +148,8 @@ def build() -> tuple[dict[str, pd.DataFrame], dict]:
         "boiler_readings": readings,
         "calibration": calibration,
         "pt_round": pt_round,
+        "qc_levels": qc_levels,
+        "pt_history": pt_hist,
     }
     return tables, scalars
 

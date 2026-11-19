@@ -1,7 +1,7 @@
 """labqc web app: home page. Run with `streamlit run app/Home.py`."""
 
 import streamlit as st
-from common import footer, labqc, page
+from common import EXAMPLES, example_url, footer, labqc, page
 
 page(
     "labqc: laboratory quality calculations",
@@ -18,7 +18,7 @@ pages = [
     (
         "pages/1_Uncertainty_budget.py",
         "Uncertainty budget",
-        "GUM budget: u_c, k from v_eff, U, and which component dominates.",
+        "GUM budget with correlations, k from v_eff, U, and a Monte Carlo check.",
     ),
     (
         "pages/2_Method_validation.py",
@@ -28,12 +28,12 @@ pages = [
     (
         "pages/3_Proficiency_testing.py",
         "Proficiency testing",
-        "z, zeta and En scores; robust mean and SD for a round (Algorithm A).",
+        "z, zeta and En; robust mean and SD of a round; z-scores across rounds.",
     ),
     (
         "pages/4_QC_charts.py",
         "QC charts",
-        "Levey-Jennings chart with Westgard rules from a CSV of control results.",
+        "Westgard rules for one or several levels, CUSUM and EWMA charts.",
     ),
     (
         "pages/5_Emissions.py",
@@ -52,6 +52,18 @@ for i, (path, label, text) in enumerate(pages):
         with st.container(border=True):
             st.page_link(path, label=f"**{label}**")
             st.caption(text)
+
+st.subheader("Open an example directly")
+st.markdown(
+    "Add `?example=<name>` to a page's address to open it with that example loaded, "
+    "for example from a handbook or a training note."
+)
+st.markdown(
+    "\n".join(
+        f"- [`{name}`]({example_url(name)}) · {label}: {text}"
+        for name, (_, label, text) in EXAMPLES.items()
+    )
+)
 
 st.markdown(
     "Library: `pip install labqc` · "

@@ -1,5 +1,34 @@
 # Changelog
 
+## 1.1.0 – the whole library in the app
+
+### Added
+- `labqc.uncertainty.monte_carlo_budget(components, value, correlation, ...)`: Monte Carlo
+  (JCGM 101) for a budget given as components, the model a budget table stands for.
+- `labqc.uncertainty.compare_with_monte_carlo(y, result, mc, n_dig=2)` → `Agreement`: checks a
+  GUM interval against a Monte Carlo interval (JCGM 101 clause 8), with
+  `numerical_tolerance(u, n_dig)` (JCGM 101 7.9.2). 13 new validation cases.
+- `record_budget(..., correlation=)` stores correlations; `budget_from_record` returns them.
+- Web app:
+  - Deep links: `?example=<name>` opens a page with that example loaded (moisture,
+    moisture-shared-balance, calibration, pt-round, pt-history, westgard, westgard-levels,
+    cusum, ewma, boiler). The Home page lists them; unknown names show a warning.
+  - QC charts: tabs for Westgard, CUSUM and EWMA; Westgard across two or three control levels
+    from a CSV with a `level` column (`westgard_levels`).
+  - Proficiency testing: a *PT history* tab (`pt_history`) with a z-score chart over rounds and
+    the warning signals marked.
+  - Uncertainty budget: an optional table of correlated inputs, and *Check with Monte Carlo*,
+    which shows the Monte Carlo interval next to the GUM one and whether they agree.
+  - A *What this means* box under each main result: two plain sentences read from the result
+    (`app/explain.py`), with no calculation of their own.
+- Tests: an AppTest for every `?example=` link and new tab; unit tests for the explanations
+  (144 tests in all).
+
+### Changed
+- Classifier `Development Status :: 5 - Production/Stable`.
+- The app needs Streamlit 1.67 or later (tabs that open on a chosen tab).
+- Version 1.1.0.
+
 ## 1.0.0 – validated release
 
 ### Added

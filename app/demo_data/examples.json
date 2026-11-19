@@ -1,7 +1,8 @@
 {
   "moisture": {
     "y": 6.971475974730401,
-    "unit": "%"
+    "unit": "%",
+    "r_shared_balance": 0.9230769230769231
   },
   "qc": {
     "baseline_points": 20

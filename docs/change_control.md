@@ -46,7 +46,8 @@ changed functions. The full run takes seconds, so there is no reason to select.
 
 | Version | Date | What changed | How it was tested and validated |
 |---|---|---|---|
-| 1.0.0 | unreleased | Validation suite (`validation/`), CI validation job, this change-control page | 91 reference cases across 32 functions, all passed; 97 unit and app tests |
+| 1.1.0 | unreleased | `monte_carlo_budget`, `compare_with_monte_carlo`, `numerical_tolerance`; correlations in budget records; app deep links, CUSUM/EWMA/multi-level/PT-history tabs, Monte Carlo check, *What this means* boxes | 104 reference cases across 35 functions, all passed; 144 unit and app tests (84 library, 60 app) |
+| 1.0.0 | 2026-11-18 | Validation suite (`validation/`), CI validation job, this change-control page | 91 reference cases across 32 functions, all passed; 97 unit and app tests |
 | 0.6.0 | 2026-11-18 | Run records, JSON, Excel and PDF reports; Reports page in the app | 97 unit and app tests (71 library, 26 app). No formal validation suite yet. |
 | 0.5.0 | 2026-11-18 | Streamlit web app; `correct_emission`, `components_from_table`, `predict_signal` | 85 tests (66 library, 19 app) |
 | 0.4.0 | 2026-11-18 | Packaging for PyPI, documentation site, release workflow; first PyPI release | 58 tests |

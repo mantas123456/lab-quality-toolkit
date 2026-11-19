@@ -93,6 +93,20 @@ def _monte_carlo(i: dict) -> dict:
     return {"u": r.standard_uncertainty, "low": r.low, "high": r.high, "mean": r.mean}
 
 
+def _monte_carlo_budget(i: dict) -> dict:
+    r = unc.monte_carlo_budget(
+        _components(i["components"]), i.get("value", 0.0), n=i["n"], seed=i["seed"]
+    )
+    return {"u": r.standard_uncertainty, "low": r.low, "high": r.high, "mean": r.mean}
+
+
+def _compare_with_monte_carlo(i: dict) -> dict:
+    result = unc.combine(_components(i["components"]), k=i["k"])
+    mc = unc.MonteCarloResult(i["mc_mean"], i["mc_u"], i["mc_low"], i["mc_high"], 0.95, np.empty(0))
+    a = unc.compare_with_monte_carlo(i["y"], result, mc, n_dig=i["n_dig"])
+    return {"d_low": a.d_low, "d_high": a.d_high, "delta": a.delta, "agrees": a.agrees}
+
+
 def _linearity(i: dict) -> dict:
     cal = val.linearity(i["x"], i["y"], weights=i.get("weights"))
     return {"slope": cal.slope, "intercept": cal.intercept, "r_squared": cal.r_squared}
@@ -182,6 +196,9 @@ ADAPTERS: dict[str, Callable[[dict], dict]] = {
     "uncertainty.combine": _combine,
     "uncertainty.propagate": _propagate,
     "uncertainty.monte_carlo": _monte_carlo,
+    "uncertainty.monte_carlo_budget": _monte_carlo_budget,
+    "uncertainty.numerical_tolerance": lambda i: {"delta": unc.numerical_tolerance(**i)},
+    "uncertainty.compare_with_monte_carlo": _compare_with_monte_carlo,
     "validation.linearity": _linearity,
     "validation.lack_of_fit": _lack_of_fit,
     "validation.lod_loq": _lod_loq,

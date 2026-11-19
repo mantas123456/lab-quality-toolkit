@@ -1,6 +1,6 @@
 # Streamlit Community Cloud installs this file (it sits next to app/Home.py).
 # The app imports labqc from src/ in this repository, so only its dependencies are listed.
-streamlit>=1.40
+streamlit>=1.67
 plotly>=5.24
 reportlab>=4.0
 openpyxl>=3.1

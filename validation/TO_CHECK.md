@@ -26,6 +26,7 @@ calculation reproduces them, but the edition, section or clause should be confir
 | `validation.trueness.csv` | Miller & Miller: edition and section of the example comparing a mean with a known value (50.4, 50.7, 49.1, 49.0, 51.1 against 50; t = 0.14). |
 | `control_charts.cusum.csv`, `control_charts.ewma.csv` | Montgomery: edition and example numbers of the tabular CUSUM and EWMA examples (30 observations, target 10, sigma 1). |
 | `uncertainty.monte_carlo.csv` | JCGM 101:2008 9.2.2 and 9.2.3: table numbers for the additive-model intervals (±3.92 normal, ±3.88 rectangular). |
+| `uncertainty.numerical_tolerance.csv`, `uncertainty.compare_with_monte_carlo.csv` | JCGM 101:2008 7.9.2 and 8.2: confirm that delta is taken from the Monte Carlo u(y) and the clause numbers. The values are hand calculations of the stated rule. |
 | `uncertainty.standard_uncertainty.csv` | JCGM 101:2008 clause for the arcsine (U-shaped) distribution. |
 | `proficiency.*.csv` | ISO 13528:2022 clause numbers for z, zeta, E_n and the action/warning signals (cited as 9.4, 9.6, 9.7, 9.4.2, 9.7.2). |
 | `validation.intermediate_precision.csv` | ISO 5725-2 clause for s_r and s_L from the ANOVA mean squares (cited as 7.4). |

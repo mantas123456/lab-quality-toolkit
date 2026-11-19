@@ -151,3 +151,160 @@ def test_saved_budget_reloads_into_the_uncertainty_page():
     assert not at.exception
     assert not at.error
     assert metric(at, "U (95%)") == f"{ex.result.expanded:.4g}"  # now on the Uncertainty page
+
+
+# --- v1.1: deep links, new tabs, Monte Carlo check, "What this means" -------------------
+
+
+def examples_registry() -> dict:
+    from common import EXAMPLES  # tests/app/conftest.py puts app/ on the path
+
+    return EXAMPLES
+
+
+def run_example(name: str) -> AppTest:
+    at = AppTest.from_file(str(ROOT / "app" / examples_registry()[name][0]), default_timeout=60)
+    at.query_params["example"] = name
+    return at.run()
+
+
+def explanations(at: AppTest) -> list[str]:
+    return [m.value for m in at.markdown if m.value.startswith("**What this means**")]
+
+
+EXAMPLE_NAMES = [
+    "moisture", "moisture-shared-balance", "calibration", "pt-round", "pt-history",
+    "westgard", "westgard-levels", "cusum", "ewma", "boiler",
+]  # fmt: skip
+
+
+def test_example_list_is_complete():
+    assert list(examples_registry()) == EXAMPLE_NAMES
+
+
+@pytest.mark.parametrize("name", EXAMPLE_NAMES)
+def test_every_example_link_opens_its_page(name):
+    at = run_example(name)
+    assert not at.exception
+    assert not at.error
+    assert not [w for w in at.warning if "example" in w.value]
+    assert at.session_state[f"_example_{examples_registry()[name][0]}"] == name
+    assert explanations(at), "every example shows a 'What this means' box"
+
+
+def test_unknown_example_is_a_friendly_warning():
+    at = AppTest.from_file(str(PAGES[0]), default_timeout=60)
+    at.query_params["example"] = "no-such-example"
+    at.run()
+    assert not at.exception
+    assert not at.error
+    assert "There is no example called 'no-such-example'" in at.warning[0].value
+    assert metric(at, "k") == "2.77"  # the page still opens with its default example
+
+
+def test_example_of_another_page_links_there():
+    at = AppTest.from_file(str(PAGES[0]), default_timeout=60)
+    at.query_params["example"] = "boiler"
+    at.run()
+    assert not at.exception
+    assert "(/Emissions?example=boiler)" in at.warning[0].value
+
+
+def test_home_lists_every_example():
+    at = AppTest.from_file(str(ROOT / "app" / "Home.py"), default_timeout=60).run()
+    text = "\n".join(m.value for m in at.markdown)
+    for name in EXAMPLE_NAMES:
+        assert f"?example={name})" in text
+
+
+def test_example_link_loads_once_so_edits_survive():
+    at = run_example("moisture")
+    at.number_input(key="unc_y").set_value(7.5).run()
+    assert at.session_state["unc_y"] == 7.5  # the rerun did not reload the example
+
+
+def test_qc_page_has_the_three_tabs():
+    at = run(PAGES[3])
+    assert [t.label for t in at.tabs] == ["Westgard", "CUSUM", "EWMA"]
+
+
+def test_qc_cusum_and_ewma_match_the_library():
+    import westgard_iqc as ex
+
+    from labqc.control_charts import cusum, ewma
+
+    cu = cusum(ex.routine, ex.limits.centre, ex.limits.sd)
+    ew = ewma(ex.routine, ex.limits.centre, ex.limits.sd)
+    at = run_example("cusum")
+    assert metric(at, "Signals") == str(int(cu["signal"].sum()))
+    assert metric(at, "Points outside") == str(int(ew["signal"].sum()))
+    first = next(m.value for m in at.metric if m.label == "First signal (day)")
+    assert first == str(21 + int(cu["signal"].to_numpy().argmax()))
+
+
+def test_qc_two_levels_match_westgard_levels():
+    from labqc.control_charts import limits_from_data, westgard_levels
+
+    data = pd.read_csv(ROOT / "app" / "demo_data" / "qc_levels.csv")
+    wide = data.pivot(index="day", columns="level", values="value")[["low", "high"]]
+    lims = {lv: limits_from_data(wide[lv].to_numpy()[:20]) for lv in wide}
+    table = westgard_levels({lv: wide[lv].to_numpy()[20:] for lv in wide}, lims)
+    at = run_example("westgard-levels")
+    assert metric(at, "Levels") == "2"
+    assert metric(at, "Rejects") == str(int((table["status"] == "reject").sum()))
+
+
+def test_qc_levels_need_limits_from_data():
+    at = run_example("westgard-levels")
+    at.radio(key="qc_mode").set_value("Enter centre and SD").run()
+    assert not at.exception
+    assert "choose 'From the first results'" in at.error[0].value
+
+
+def test_pt_history_tab_matches_the_library():
+    from labqc.proficiency import pt_history
+
+    history = pt_history(pd.read_csv(ROOT / "app" / "demo_data" / "pt_history.csv"))
+    at = run_example("pt-history")
+    assert [t.label for t in at.tabs] == ["Scores and round", "PT history"]
+    assert metric(at, "Rounds") == str(len(history))
+    assert metric(at, "Rounds needing action") == str(int(history["action"].sum()))
+
+
+def test_pt_history_add_to_report():
+    at = run_example("pt-history")
+    next(b for b in at.button if b.key == "pt_hist_report").click().run()
+    assert not at.exception
+    assert at.session_state["records"][-1].function == "labqc.proficiency.pt_history"
+
+
+def test_correlated_budget_matches_combine():
+    from labqc.uncertainty import combine, components_from_table
+
+    names = ["Weighing m1", "Weighing m2", "Weighing m3"]
+    r_shared = 0.001**2 / (0.001**2 + (0.0005 / 3**0.5) ** 2)  # examples/monte_carlo_vs_gum.py
+    corr = {(a, b): r_shared for i, a in enumerate(names) for b in names[i + 1 :]}
+    budget = pd.read_csv(ROOT / "app" / "demo_data" / "moisture_budget.csv")
+    expected = combine(components_from_table(budget), correlation=corr)
+    at = run_example("moisture-shared-balance")
+    assert metric(at, "u_c") == f"{expected.combined:.4g}"
+    assert expected.covariance < 0  # the shared offset partly cancels
+
+
+def test_monte_carlo_check_on_the_uncertainty_page():
+    at = run(PAGES[0])
+    next(b for b in at.button if b.label == "Check with Monte Carlo").click().run()
+    assert not at.exception
+    assert not at.error
+    assert metric(at, "Agreement") in ("confirmed", "not confirmed")
+    assert "Monte Carlo interval" in [m.label for m in at.metric]
+    assert len(explanations(at)) == 2  # the budget's and the Monte Carlo check's
+
+
+def test_correlated_budget_saved_and_reloaded_keeps_its_correlation():
+    from labqc.report import budget_from_record
+
+    at = run_example("moisture-shared-balance")
+    next(b for b in at.button if b.label == "Add to report").click().run()
+    _, info = budget_from_record(at.session_state["records"][0])
+    assert info["correlation"] and len(info["correlation"]) == 3

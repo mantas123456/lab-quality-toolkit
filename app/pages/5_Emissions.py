@@ -1,11 +1,13 @@
 """Emissions page: analyser readings -> mg/m3 dry, standard conditions, reference O2."""
 
+import explain
 import pandas as pd
 import plotly.express as px
 import streamlit as st
 from common import (
     columns,
     csv_bytes,
+    deep_link,
     demo_table,
     examples,
     export_header,
@@ -13,6 +15,7 @@ from common import (
     friendly_errors,
     page,
     report_button,
+    what_this_means,
 )
 
 from labqc.emissions import MOLAR_MASS, UNITS, correct_emission
@@ -33,6 +36,7 @@ def load_example() -> None:
     st.session_state.em_version = st.session_state.get("em_version", 0) + 1
 
 
+deep_link("pages/5_Emissions.py", {"boiler": load_example})
 if "em_table" not in st.session_state:
     load_example()
 
@@ -123,6 +127,7 @@ with results:
         hide_index=True,
         width="stretch",
     )
+    what_this_means(explain.emissions(table, res.correction_factor, o2_ref))
     limited = table.dropna(subset=["% of limit"])
     for _, row in limited.iterrows():
         text = f"{row['gas']}: {row['% of limit']:.0f} % of the limit"

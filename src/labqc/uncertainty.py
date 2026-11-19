@@ -495,3 +495,99 @@ def monte_carlo(
         coverage=coverage,
         samples=y,
     )
+
+
+def monte_carlo_budget(
+    components: Sequence[Component],
+    value: float = 0.0,
+    correlation: Correlation | None = None,
+    n: int = 200_000,
+    seed: int | None = None,
+    coverage: float = 0.95,
+) -> MonteCarloResult:
+    """Monte Carlo (JCGM 101) for a budget given as a list of components.
+
+    The model is the linear one a budget table stands for:
+    y = value + sum(c_i * delta_i), where each delta_i is drawn around zero
+    from component i's distribution (Student t for a normal component with
+    finite dof). Use it to check a `combine` result: the GUM method replaces
+    each t-distributed input by a normal one and puts the extra width into k,
+    so with few degrees of freedom the two can differ.
+    """
+    if not components:
+        raise ValueError("budget is empty")
+    return monte_carlo(
+        lambda: value,
+        {},
+        {},
+        extra=components,
+        n=n,
+        seed=seed,
+        coverage=coverage,
+        correlation=correlation,
+    )
+
+
+@dataclass(frozen=True)
+class Agreement:
+    """Outcome of `compare_with_monte_carlo` (JCGM 101:2008 clause 8).
+
+    gum_low, gum_high: y -/+ U. mc_low, mc_high: the Monte Carlo interval.
+    d_low, d_high: the absolute differences of the endpoints. delta: the
+    numerical tolerance. agrees: both differences are at most delta.
+    """
+
+    gum_low: float
+    gum_high: float
+    mc_low: float
+    mc_high: float
+    d_low: float
+    d_high: float
+    delta: float
+    n_dig: int
+
+    @property
+    def agrees(self) -> bool:
+        return self.d_low <= self.delta and self.d_high <= self.delta
+
+
+def numerical_tolerance(u: float, n_dig: int = 2) -> float:
+    """Numerical tolerance delta of a standard uncertainty (JCGM 101:2008 7.9.2).
+
+    Write u with n_dig significant digits as c x 10^l; then delta = 10^l / 2.
+    Example: u = 0.0191 with n_dig = 2 is 19 x 10^-3, so delta = 0.0005.
+    """
+    if not u > 0 or not math.isfinite(u):
+        raise ValueError("u must be a positive finite number")
+    if n_dig < 1:
+        raise ValueError("n_dig must be at least 1")
+    c = float(f"{u:.{n_dig}g}")  # u rounded to n_dig significant digits
+    exponent = math.floor(math.log10(c)) - (n_dig - 1)
+    return 0.5 * 10.0**exponent
+
+
+def compare_with_monte_carlo(
+    y: float, result: Result, mc: MonteCarloResult, n_dig: int = 2
+) -> Agreement:
+    """Check a GUM interval y +/- U against a Monte Carlo interval (JCGM 101:2008 8.2).
+
+    d_low = |y - U - y_low| and d_high = |y + U - y_high|. The GUM result is
+    confirmed when both are at most delta, the numerical tolerance of the
+    Monte Carlo u(y) to n_dig significant digits (`numerical_tolerance`).
+    Both intervals must have the same coverage probability.
+    """
+    if not math.isclose(result.coverage, mc.coverage):
+        raise ValueError(
+            f"coverage differs: GUM {result.coverage:.0%}, Monte Carlo {mc.coverage:.0%}"
+        )
+    low, high = y - result.expanded, y + result.expanded
+    return Agreement(
+        gum_low=low,
+        gum_high=high,
+        mc_low=mc.low,
+        mc_high=mc.high,
+        d_low=abs(low - mc.low),
+        d_high=abs(high - mc.high),
+        delta=numerical_tolerance(mc.standard_uncertainty, n_dig),
+        n_dig=n_dig,
+    )

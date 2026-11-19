@@ -14,14 +14,14 @@ written as small, tested Python functions:
 <!-- --8<-- [start:modules] -->
 | Module | What it covers | Reference |
 |---|---|---|
-| `uncertainty` | GUM uncertainty budgets: Type A and B components, sensitivity coefficients (analytic or numerical), correlated inputs, Welch–Satterthwaite degrees of freedom, coverage factor, relative uncertainty; Monte Carlo propagation | JCGM 100:2008 (GUM), JCGM 101:2008 (GUM S1) |
+| `uncertainty` | GUM uncertainty budgets: Type A and B components, sensitivity coefficients (analytic or numerical), correlated inputs, Welch–Satterthwaite degrees of freedom, coverage factor, relative uncertainty; Monte Carlo propagation and a check of the GUM interval against it | JCGM 100:2008 (GUM), JCGM 101:2008 (GUM S1) |
 | `validation` | Calibration linearity (ordinary or weighted) with confidence intervals and lack-of-fit test, LOD/LOQ, precision (RSD), intermediate precision by ANOVA, spike recovery, trueness against a CRM | ICH Q2, Eurachem guide, ERM Application Note 1 |
 | `proficiency` | z, zeta and E<sub>n</sub> scores with interpretation; robust consensus mean (Algorithm A); z-score history across rounds | ISO 13528, ISO/IEC 17043 |
 | `control_charts` | Shewhart limits; Westgard rules 1<sub>2s</sub>, 1<sub>3s</sub>, 2<sub>2s</sub>, R<sub>4s</sub>, 4<sub>1s</sub>, 10<sub>x</sub>, also across two or three control levels; CUSUM and EWMA charts | Westgard multirule QC; Montgomery, *Introduction to Statistical Quality Control* |
 | `emissions` | ppm ↔ mg/m³ at standard conditions, correction to reference O₂ and its uncertainty, wet ↔ dry, user-defined gases | Stack-emission practice, e.g. EN 303-5 at 10 % O₂ |
 | `report` | Run records (inputs, settings, result, method, labqc version, UTC time, analyst) saved as JSON and reloaded; Excel workbook and one-page PDF reports | ISO/IEC 17025 7.5 (technical records) |
 
-Every function is tested against hand-calculated values or textbook worked examples (71 library tests, plus 26 for the web app),
+Every function is tested against hand-calculated values or textbook worked examples (84 library tests, plus 60 for the web app),
 and the examples below run in CI.
 <!-- --8<-- [end:modules] -->
 
@@ -157,15 +157,34 @@ can be checked against each other:
 
 | Page | What it does |
 |---|---|
-| Uncertainty budget | Edit or upload (CSV) the components; result card y ± U with k and v_eff; budget table and a chart of each component's share of variance |
+| Uncertainty budget | Edit or upload (CSV) the components and optional correlations between them; result card y ± U with k and v_eff; budget table and a chart of each component's share of variance; *Check with Monte Carlo* compares the GUM interval with a JCGM 101 Monte Carlo interval |
 | Method validation | Calibration line (ordinary or weighted) with residual plot and lack-of-fit test, LOD/LOQ, precision, recovery |
-| Proficiency testing | z, zeta and E<sub>n</sub> with coloured status; robust mean and SD of a round (Algorithm A) |
-| QC charts | CSV of control results; Levey-Jennings chart with ±1, 2, 3 SD lines and Westgard violations marked |
+| Proficiency testing | z, zeta and E<sub>n</sub> with coloured status; robust mean and SD of a round (Algorithm A); a *PT history* tab with your z-scores over rounds and the warning signals marked |
+| QC charts | CSV of control results; tabs for Westgard (Levey-Jennings chart, or the rules across two or three control levels), CUSUM and EWMA |
 | Emissions | ppm or mg/m³ (standard or actual conditions), wet or dry, corrected to reference O₂, % of the limit |
 | Reports | Results added with *Add to report* on any page: one PDF per result, one Excel workbook, JSON records; reload a saved budget into the Uncertainty page |
 
 The app contains no calculations of its own: every number comes from labqc. Bad input shows
-a plain message, not a Python traceback. Every page has CSV downloads and an *Add to report* button.
+a plain message, not a Python traceback. Every page has CSV downloads and an *Add to report*
+button, and every main result has a short *What this means* box in plain English.
+
+**Open an example directly.** Add `?example=<name>` to a page's address to open it with that
+example loaded:
+
+| Link | Opens |
+|---|---|
+| [`?example=moisture`](https://lab-quality-toolkit-3go33hyzzwjhwpktn8tles.streamlit.app/Uncertainty_budget?example=moisture) | Moisture budget (Example 1) |
+| [`?example=moisture-shared-balance`](https://lab-quality-toolkit-3go33hyzzwjhwpktn8tles.streamlit.app/Uncertainty_budget?example=moisture-shared-balance) | The same budget with the three weighings correlated (one balance) |
+| [`?example=calibration`](https://lab-quality-toolkit-3go33hyzzwjhwpktn8tles.streamlit.app/Method_validation?example=calibration) | Calibration line, LOD/LOQ, precision and recovery |
+| [`?example=pt-round`](https://lab-quality-toolkit-3go33hyzzwjhwpktn8tles.streamlit.app/Proficiency_testing?example=pt-round) | z, zeta and E<sub>n</sub>, and a round of 15 labs |
+| [`?example=pt-history`](https://lab-quality-toolkit-3go33hyzzwjhwpktn8tles.streamlit.app/Proficiency_testing?example=pt-history) | z-scores of 14 PT rounds with the warning signals |
+| [`?example=westgard`](https://lab-quality-toolkit-3go33hyzzwjhwpktn8tles.streamlit.app/QC_charts?example=westgard) | Westgard rules with a shift from day 45 (Example 2) |
+| [`?example=westgard-levels`](https://lab-quality-toolkit-3go33hyzzwjhwpktn8tles.streamlit.app/QC_charts?example=westgard-levels) | Westgard rules across two control levels |
+| [`?example=cusum`](https://lab-quality-toolkit-3go33hyzzwjhwpktn8tles.streamlit.app/QC_charts?example=cusum) | CUSUM chart of the same series |
+| [`?example=ewma`](https://lab-quality-toolkit-3go33hyzzwjhwpktn8tles.streamlit.app/QC_charts?example=ewma) | EWMA chart of the same series |
+| [`?example=boiler`](https://lab-quality-toolkit-3go33hyzzwjhwpktn8tles.streamlit.app/Emissions?example=boiler) | Boiler test at 10 % O₂ (Example 3) |
+
+An unknown name shows a warning and the page opens with its usual example.
 
 Run it on your PC:
 

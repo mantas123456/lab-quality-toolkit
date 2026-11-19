@@ -41,6 +41,24 @@ def test_budget_reloads_to_the_same_result(budget):
     assert math.isinf(components_from_table(table)[1].dof)
 
 
+def test_correlated_budget_reloads_with_its_correlation():
+    comps = [Component("m2", 0.001, sensitivity=0.74), Component("m3", 0.001, sensitivity=-0.80)]
+    corr = {("m2", "m3"): 0.92}
+    result = combine(comps, correlation=corr)
+    record = RunRecord.from_json(record_budget(comps, result, correlation=corr).to_json())
+    table, info = budget_from_record(record)
+    assert info["correlation"] == corr
+    again = combine(components_from_table(table), correlation=info["correlation"])
+    assert again.combined == pytest.approx(result.combined, rel=1e-12)
+
+
+def test_uncorrelated_budget_has_no_correlation(budget):
+    comps, result = budget
+    record = record_budget(comps, result)
+    assert "correlation" not in record.inputs
+    assert budget_from_record(record)[1]["correlation"] is None
+
+
 def test_from_json_rejects_other_files():
     with pytest.raises(ValueError, match="Not a valid labqc record"):
         RunRecord.from_json("not json")

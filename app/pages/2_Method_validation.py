@@ -1,11 +1,13 @@
 """Method validation page: calibration, LOD/LOQ, precision, recovery (labqc.validation)."""
 
+import explain
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 from common import (
     columns,
     csv_bytes,
+    deep_link,
     demo_table,
     examples,
     export_header,
@@ -14,6 +16,7 @@ from common import (
     page,
     parse_numbers,
     report_button,
+    what_this_means,
 )
 from plotly.subplots import make_subplots
 
@@ -39,6 +42,7 @@ def load_example() -> None:
     st.session_state.val_version = st.session_state.get("val_version", 0) + 1
 
 
+deep_link("pages/2_Method_validation.py", {"calibration": load_example})
 if "val_table" not in st.session_state:
     load_example()
 
@@ -131,6 +135,16 @@ with results:
     m2.metric("Mean", f"{prec['mean']:.4g}")
     m3.metric("RSD", f"{prec['rsd_percent']:.2f} %")
     m4.metric("Recovery", f"{rec:.1f} %")
+    what_this_means(
+        explain.validation(
+            cal.r_squared,
+            None if cal.lack_of_fit is None else cal.lack_of_fit.p_value,
+            None if cal.lack_of_fit is None else cal.lack_of_fit.significant,
+            lod,
+            loq,
+            rec,
+        )
+    )
 
 export_header()
 summary = pd.DataFrame(

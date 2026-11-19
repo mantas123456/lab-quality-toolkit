@@ -131,8 +131,12 @@ def record_budget(
     unit: str = "",
     title: str = "Uncertainty budget",
     analyst: str | None = None,
+    correlation: Mapping[tuple[str, str], float] | None = None,
 ) -> RunRecord:
-    """Record a budget made with `combine` (or `propagate`) so it can be reported and reloaded."""
+    """Record a budget made with `combine` (or `propagate`) so it can be reported and reloaded.
+
+    `correlation` is the one passed to `combine`; it is stored as [name, name, r] rows.
+    """
     return RunRecord(
         function=BUDGET_FUNCTION,
         title=title,
@@ -153,6 +157,11 @@ def record_budget(
                 }
                 for c in components
             ],
+            **(
+                {"correlation": [[a, b, float(r)] for (a, b), r in correlation.items()]}
+                if correlation
+                else {}
+            ),
         },
         settings={
             "coverage": result.coverage if coverage is None else coverage,
@@ -173,7 +182,8 @@ def budget_from_record(record: RunRecord) -> tuple[pd.DataFrame, dict[str, Any]]
     """The components table and settings of a recorded budget, ready for `combine` again.
 
     Returns (table with the columns of `components_from_table`, dict with value, unit,
-    coverage and fixed_k). Raises ValueError if the record is not an uncertainty budget.
+    coverage, fixed_k and correlation, a {(name, name): r} dict or None). Raises ValueError
+    if the record is not an uncertainty budget.
     """
     if record.function != BUDGET_FUNCTION or "components" not in record.inputs:
         raise ValueError(
@@ -188,6 +198,8 @@ def budget_from_record(record: RunRecord) -> tuple[pd.DataFrame, dict[str, Any]]
         "unit": record.inputs.get("unit", ""),
         "coverage": record.settings.get("coverage", 0.95),
         "fixed_k": record.settings.get("fixed_k"),
+        "correlation": {(a, b): float(r) for a, b, r in record.inputs.get("correlation", [])}
+        or None,
     }
     return table, info
 

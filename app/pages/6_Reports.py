@@ -5,7 +5,7 @@ from dataclasses import replace
 
 import pandas as pd
 import streamlit as st
-from common import columns, footer, page
+from common import columns, correlation_frame, footer, page
 
 from labqc.report import RunRecord, budget_from_record, to_excel, to_pdf
 
@@ -40,6 +40,7 @@ def open_in_uncertainty(record: RunRecord) -> None:
     if info["coverage"] in (0.90, 0.95, 0.99):
         st.session_state.unc_coverage = info["coverage"]
     st.session_state.unc_k = float(info["fixed_k"] or 0.0)
+    st.session_state.unc_corr = correlation_frame(info["correlation"])
     st.session_state.unc_version = st.session_state.get("unc_version", 0) + 1
 
 
