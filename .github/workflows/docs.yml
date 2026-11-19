@@ -27,6 +27,11 @@ jobs:
         run: pip install -e ".[docs]"
       - name: Build site
         run: mkdocs build --strict
+      - name: Build the browser app (stlite) into site/app
+        run: |
+          pip install build
+          python -m build --wheel
+          python web/build.py --wheel dist/labqc-*-py3-none-any.whl --out site/app
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4
         with:

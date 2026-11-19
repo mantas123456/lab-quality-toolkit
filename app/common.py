@@ -5,6 +5,7 @@ No calculations live here or in the pages: every number comes from labqc.
 
 from __future__ import annotations
 
+import importlib.util
 import json
 import sys
 from collections.abc import Callable, Iterator, Mapping
@@ -23,7 +24,12 @@ DEMO = ROOT / "app" / "demo_data"
 if str(ROOT / "src") not in sys.path:
     sys.path.insert(0, str(ROOT / "src"))
 
+import project  # noqa: E402  (app/project.py)
+
 import labqc  # noqa: E402
+
+# True in the browser build (Streamlit on Pyodide via stlite, see web/).
+IN_BROWSER = sys.platform == "emscripten"
 
 STATUS_COLOURS = {"accept": "#2c6e8f", "warning": "#e0a100", "reject": "#c0392b"}
 CLASS_COLOURS = {"satisfactory": "green", "questionable": "orange", "unsatisfactory": "red"}
@@ -62,8 +68,12 @@ EXAMPLES: dict[str, tuple[str, str, str]] = {
     ),
     "cusum": ("pages/4_QC_charts.py", "QC charts", "CUSUM chart of the same QC series"),
     "ewma": ("pages/4_QC_charts.py", "QC charts", "EWMA chart of the same QC series"),
+    "qc-overview": (
+        "pages/5_QC_overview.py", "QC overview",
+        "three methods at two control levels, one series rejected and one with a warning",
+    ),
     "boiler": (
-        "pages/5_Emissions.py", "Emissions",
+        "pages/6_Emissions.py", "Emissions",
         "boiler test corrected to 10 % O2 (examples/boiler_emissions.py)",
     ),
     "topdown": (
@@ -71,11 +81,11 @@ EXAMPLES: dict[str, tuple[str, str, str]] = {
         "top-down uncertainty from the QC series and six PT rounds (Nordtest TR 537)",
     ),
     "decision": (
-        "pages/6_Decision_rules.py", "Decision rules",
+        "pages/7_Decision_rules.py", "Decision rules",
         "lead in water near its limit, simple acceptance",
     ),
     "decision-guarded": (
-        "pages/6_Decision_rules.py", "Decision rules",
+        "pages/7_Decision_rules.py", "Decision rules",
         "the same result with a guard band w = U (non-binary statement)",
     ),
 }  # fmt: skip
@@ -84,10 +94,11 @@ EXAMPLES: dict[str, tuple[str, str, str]] = {
 def example_url(name: str) -> str:
     """Relative link that opens the page of example `name` with it loaded.
 
-    Streamlit serves pages/3_Proficiency_testing.py at /Proficiency_testing.
+    Streamlit serves pages/3_Proficiency_testing.py at Proficiency_testing, next to the
+    other pages, so a relative link works wherever the app is hosted.
     """
     stem = Path(EXAMPLES[name][0]).stem
-    return f"/{stem.split('_', 1)[1]}?example={name}"
+    return f"{stem.split('_', 1)[1]}?example={name}"
 
 
 def deep_link(page_file: str, loaders: Mapping[str, Callable[[], None]]) -> None:
@@ -143,6 +154,28 @@ def correlation_dict(table: pd.DataFrame) -> dict[tuple[str, str], float] | None
     return out or None
 
 
+def remember(key: str, table: pd.DataFrame) -> None:
+    """Keep a data editor's current table, edits included, for the project file."""
+    st.session_state[key + "__edited"] = table
+
+
+def tabs(labels: list[str], default: str | None = None):
+    """st.tabs that opens on `default` where this Streamlit supports it.
+
+    The browser build runs the Streamlit version bundled with stlite, which may not take
+    `default`; there the first tab opens instead.
+    """
+    try:
+        return st.tabs(labels, default=default)
+    except TypeError:
+        return st.tabs(labels)
+
+
+def pdf_available() -> bool:
+    """PDF reports need reportlab, which the browser build does not install."""
+    return importlib.util.find_spec("reportlab") is not None
+
+
 def what_this_means(sentences: list[str]) -> None:
     """The plain-English box under a main result (sentences come from app/explain.py)."""
     if sentences:
@@ -151,10 +184,60 @@ def what_this_means(sentences: list[str]) -> None:
 
 
 def page(title: str, intro: str) -> None:
-    """Common page header."""
+    """Common page header, and the project file in the sidebar."""
     st.set_page_config(page_title=f"{title} · labqc", page_icon="🧪", layout="wide")
+    keep_inputs()
+    project_sidebar()
     st.title(title)
     st.caption(intro)
+
+
+def keep_inputs() -> None:
+    """Keep every page's inputs while another page is open.
+
+    Streamlit forgets a widget's value once its page is left; assigning the value to itself
+    at the top of each run keeps it, so a project saved from any page holds every page.
+    """
+    for keys in project.PAGES.values():
+        for key in keys:
+            if key in st.session_state:
+                st.session_state[key] = st.session_state[key]
+
+
+def open_project() -> None:
+    """File-uploader callback: check the project file, then load it into the session."""
+    file = st.session_state.get("project_upload")
+    if file is None:
+        return
+    try:
+        values, records = project.loads(file.getvalue())
+    except ValueError as err:
+        st.session_state.project_message = ("error", str(err))
+        return
+    project.apply(st.session_state, values, records)
+    st.session_state.project_message = (
+        "success",
+        f"Project opened: {len(values)} inputs and {len(records)} report record(s).",
+    )
+
+
+def project_sidebar() -> None:
+    with st.sidebar:
+        st.markdown("**Project file**")
+        st.download_button(
+            "Save project",
+            project.dumps(st.session_state, labqc.__version__).encode("utf-8"),
+            f"labqc_project{project.SUFFIX}",
+            "application/json",
+            key="project_save",
+            help="Every page's inputs and the report records in one .labqc.json file.",
+        )
+        st.file_uploader(
+            "Open a project", type="json", key="project_upload", on_change=open_project
+        )
+        message = st.session_state.pop("project_message", None)
+        if message:
+            (st.error if message[0] == "error" else st.success)(message[1])
 
 
 def columns():

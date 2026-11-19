@@ -5,9 +5,9 @@ from dataclasses import replace
 
 import pandas as pd
 import streamlit as st
-from common import columns, correlation_frame, footer, page
+from common import columns, correlation_frame, footer, page, pdf_available
 
-from labqc.report import RunRecord, budget_from_record, to_excel, to_pdf
+from labqc.report import RunRecord, budget_from_record, to_excel, to_pdf  # to_pdf: reportlab
 
 page(
     "Reports",
@@ -125,9 +125,12 @@ with right:
         )
         chosen = signed[index]
         c1, c2 = st.columns(2)
-        c1.download_button(
-            "PDF report", pdf_bytes(chosen), f"{slug(chosen)}.pdf", "application/pdf"
-        )
+        if pdf_available():
+            c1.download_button(
+                "PDF report", pdf_bytes(chosen), f"{slug(chosen)}.pdf", "application/pdf"
+            )
+        else:
+            c1.caption("PDF reports need reportlab, which this version of the app does not have.")
         c2.download_button(
             "JSON record",
             chosen.to_json().encode("utf-8"),

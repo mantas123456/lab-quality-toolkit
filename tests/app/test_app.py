@@ -12,6 +12,20 @@ from streamlit.testing.v1 import AppTest  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 PAGES = sorted((ROOT / "app" / "pages").glob("*.py"))
+
+
+def page_file(name: str) -> Path:
+    """A page by the name Streamlit shows (the file name without its number)."""
+    return next(p for p in PAGES if p.stem.split("_", 1)[1] == name)
+
+
+UNCERTAINTY = page_file("Uncertainty_budget")
+VALIDATION = page_file("Method_validation")
+PT = page_file("Proficiency_testing")
+QC = page_file("QC_charts")
+EMISSIONS = page_file("Emissions")
+REPORTS = page_file("Reports")
+CALC_PAGES = [p for p in PAGES if p != REPORTS]  # every page with a calculation
 sys.path.insert(0, str(ROOT / "examples"))
 
 
@@ -33,7 +47,7 @@ def test_page_runs_without_errors(path):
     assert not at.error
 
 
-@pytest.mark.parametrize("path", PAGES[:6], ids=lambda p: p.stem)
+@pytest.mark.parametrize("path", CALC_PAGES, ids=lambda p: p.stem)
 def test_load_example_button(path):
     at = run(path)
     at.button[0].click().run()
@@ -44,7 +58,7 @@ def test_load_example_button(path):
 def test_uncertainty_matches_moisture_example():
     import moisture_uncertainty as ex
 
-    at = run(PAGES[0])
+    at = run(UNCERTAINTY)
     assert metric(at, "U (95%)") == f"{ex.result.expanded:.4g}"
     assert metric(at, "k") == f"{ex.result.k:.2f}"
     assert metric(at, "u_c") == f"{ex.result.combined:.4g}"
@@ -53,7 +67,7 @@ def test_uncertainty_matches_moisture_example():
 def test_qc_matches_westgard_example():
     import westgard_iqc as ex
 
-    at = run(PAGES[3])
+    at = run(QC)
     counts = ex.table["status"].value_counts()
     assert metric(at, "Warnings") == str(counts["warning"])
     assert metric(at, "Rejects") == str(counts["reject"])
@@ -62,7 +76,7 @@ def test_qc_matches_westgard_example():
 
 def test_emissions_matches_boiler_example():
     """examples/boiler_emissions.py: CO 310 ppm at 12.8 % O2 is 104 % of the example limit."""
-    at = run(PAGES[4])
+    at = run(EMISSIONS)
     assert [w.value for w in at.warning] == ["CO: 104 % of the limit"]
     assert metric(at, "O₂ correction factor") == "1.346"
 
@@ -71,20 +85,20 @@ def test_bad_distribution_is_a_plain_error():
     table = pd.DataFrame(
         {"name": ["Balance"], "value": [0.1], "distribution": ["lognormal"], "k": [1.0]}
     )
-    at = run(PAGES[0], unc_table=table, unc_version=0, unc_y=1.0, unc_unit="g")
+    at = run(UNCERTAINTY, unc_table=table, unc_version=0, unc_y=1.0, unc_unit="g")
     assert not at.exception
     assert "Distribution must be normal, rectangular, triangular or u-shaped" in at.error[0].value
 
 
 def test_bad_number_in_validation_is_a_plain_error():
-    at = run(PAGES[1])
+    at = run(VALIDATION)
     at.text_area(key="val_replicates").input("50.1, 49.8, abc").run()
     assert not at.exception
     assert at.error[0].value == "Replicate results: 'abc' is not a number"
 
 
 def test_zero_sigma_pt_is_a_plain_error():
-    at = run(PAGES[2])
+    at = run(PT)
     at.number_input(key="pt_sigma_pt").set_value(0.0).run()
     assert not at.exception
     assert at.error[0].value == "σ_pt must be greater than 0"
@@ -110,7 +124,7 @@ def _button(at: AppTest, label: str):
     return next(b for b in at.button if b.label == label)
 
 
-@pytest.mark.parametrize("path", PAGES[:6], ids=lambda p: p.stem)
+@pytest.mark.parametrize("path", CALC_PAGES, ids=lambda p: p.stem)
 def test_add_to_report_makes_a_record(path):
     at = run(path)
     _button(at, "Add to report").click().run()
@@ -124,13 +138,13 @@ def test_add_to_report_makes_a_record(path):
 def test_reports_page_with_records_builds_downloads():
     from labqc.report import RunRecord
 
-    at = run(PAGES[0])
+    at = run(UNCERTAINTY)
     _button(at, "Add to report").click().run()
     records = [*at.session_state["records"], RunRecord("labqc.proficiency", {"x": 1.0})]
-    at = run(PAGES[6], records=records, analyst="A. Analyst")
+    at = run(REPORTS, records=records, analyst="A. Analyst")
     assert not at.exception
     assert not at.error
-    labels = [b.label for b in at.get("download_button")]
+    labels = [b.label for b in at.get("download_button") if b.label != "Save project"]
     assert labels == ["Excel workbook, all 2 record(s)", "PDF report", "JSON record"]
 
 
@@ -140,13 +154,13 @@ def test_saved_budget_reloads_into_the_uncertainty_page():
 
     from labqc.report import RunRecord
 
-    at = run(PAGES[0])
+    at = run(UNCERTAINTY)
     _button(at, "Add to report").click().run()
     saved = at.session_state["records"][0].to_json()  # what the JSON download contains
 
     at = AppTest.from_file(str(ROOT / "app" / "Home.py"), default_timeout=60).run()
     at.session_state["report_loaded"] = RunRecord.from_json(saved)
-    at.switch_page("pages/7_Reports.py").run()
+    at.switch_page("pages/8_Reports.py").run()
     _button(at, "Open this budget in Uncertainty budget").click().run()
     assert not at.exception
     assert not at.error
@@ -174,7 +188,7 @@ def explanations(at: AppTest) -> list[str]:
 
 EXAMPLE_NAMES = [
     "moisture", "moisture-shared-balance", "calibration", "pt-round", "pt-history",
-    "westgard", "westgard-levels", "cusum", "ewma", "boiler", "topdown", "decision",
+    "westgard", "westgard-levels", "cusum", "ewma", "qc-overview", "boiler", "topdown", "decision",
     "decision-guarded",
 ]  # fmt: skip
 
@@ -194,7 +208,7 @@ def test_every_example_link_opens_its_page(name):
 
 
 def test_unknown_example_is_a_friendly_warning():
-    at = AppTest.from_file(str(PAGES[0]), default_timeout=60)
+    at = AppTest.from_file(str(UNCERTAINTY), default_timeout=60)
     at.query_params["example"] = "no-such-example"
     at.run()
     assert not at.exception
@@ -204,11 +218,11 @@ def test_unknown_example_is_a_friendly_warning():
 
 
 def test_example_of_another_page_links_there():
-    at = AppTest.from_file(str(PAGES[0]), default_timeout=60)
+    at = AppTest.from_file(str(UNCERTAINTY), default_timeout=60)
     at.query_params["example"] = "boiler"
     at.run()
     assert not at.exception
-    assert "(/Emissions?example=boiler)" in at.warning[0].value
+    assert "(Emissions?example=boiler)" in at.warning[0].value
 
 
 def test_home_lists_every_example():
@@ -225,7 +239,7 @@ def test_example_link_loads_once_so_edits_survive():
 
 
 def test_qc_page_has_the_three_tabs():
-    at = run(PAGES[3])
+    at = run(QC)
     assert [t.label for t in at.tabs] == ["Westgard", "CUSUM", "EWMA"]
 
 
@@ -293,7 +307,7 @@ def test_correlated_budget_matches_combine():
 
 
 def test_monte_carlo_check_on_the_uncertainty_page():
-    at = run(PAGES[0])
+    at = run(UNCERTAINTY)
     next(b for b in at.button if b.label == "Check with Monte Carlo").click().run()
     assert not at.exception
     assert not at.error
@@ -313,11 +327,14 @@ def test_correlated_budget_saved_and_reloaded_keeps_its_correlation():
 
 # --- v1.2: decision rules and top-down uncertainty --------------------------------------
 
-DECISION = ROOT / "app" / "pages" / "6_Decision_rules.py"
+DECISION = page_file("Decision_rules")
 
 
 def test_pages_are_in_menu_order():
-    assert [p.stem for p in PAGES][5:] == ["6_Decision_rules", "7_Reports"]
+    assert [p.stem.split("_", 1)[1] for p in PAGES] == [
+        "Uncertainty_budget", "Method_validation", "Proficiency_testing", "QC_charts",
+        "QC_overview", "Emissions", "Decision_rules", "Reports",
+    ]  # fmt: skip
 
 
 @pytest.mark.parametrize(
@@ -395,3 +412,80 @@ def test_topdown_relative_and_add_to_report():
     record = at.session_state["records"][-1]
     assert record.function == "labqc.topdown.combine_topdown"
     assert record.settings["relative"] is True
+
+
+# --- v1.3: QC overview, budget templates, project file -----------------------------------
+
+OVERVIEW = page_file("QC_overview")
+
+
+def test_qc_overview_matches_the_library():
+    from labqc.control_charts import qc_overview
+
+    expected = qc_overview(pd.read_csv(ROOT / "app" / "demo_data" / "qc_overview.csv"))
+    at = run_example("qc-overview")
+    counts = expected["status"].value_counts()
+    assert metric(at, "Series") == str(len(expected))
+    assert metric(at, "Rejects") == str(counts["reject"])
+    labels = [b.label for b in at.button if b.key and b.key.startswith("qcov_")]
+    assert len(labels) == len(expected)
+    assert "🔴 reject (1_2s, 2_2s)" in labels
+
+
+def test_qc_overview_cell_click_and_open_in_qc_charts():
+    at = run(OVERVIEW)
+    next(b for b in at.button if b.key == "qcov_Chloride (IC)_high").click().run()
+    assert at.session_state["qcov_selected"] == ("Chloride (IC)", "high")
+    assert "**Chloride (IC) / high**" in [m.value for m in at.markdown]
+    next(b for b in at.button if b.label == "Open this series in QC charts").click().run()
+    assert at.session_state["qc_mode"] == "Enter centre and SD"
+    assert at.session_state["qc_centre"] == 200.0 and at.session_state["qc_sd"] == 4.0
+    assert len(at.session_state["qc_table"]) == 30
+
+
+@pytest.mark.parametrize("key", ["weighing", "dilution", "moisture", "o2"])
+def test_budget_templates_load_and_match_combine(key):
+    from common import examples
+
+    from labqc.uncertainty import combine, components_from_table
+
+    template = examples()["templates"][key]
+    expected = combine(components_from_table(pd.DataFrame(template["rows"])))
+    at = run(UNCERTAINTY)
+    at.selectbox(key="unc_template").set_value(key).run()
+    next(b for b in at.button if b.label == "Load template").click().run()
+    assert not at.exception
+    assert not at.error
+    assert metric(at, "u_c") == f"{expected.combined:.4g}"
+    assert any(template["title"] in c.value for c in at.caption)
+
+
+def test_project_saved_on_one_run_reopens_in_a_new_session():
+    import project
+
+    at = run(UNCERTAINTY)
+    at.number_input(key="unc_y").set_value(7.25).run()
+    values, records = project.loads(project.dumps(at.session_state, "test"))
+    assert values["unc_y"] == 7.25
+    assert "unc_table" in values and "td_qc" in values
+
+    fresh = AppTest.from_file(str(UNCERTAINTY), default_timeout=60)
+    project.apply(fresh.session_state, values, records)
+    fresh.run()
+    assert not fresh.exception
+    assert fresh.session_state["unc_y"] == 7.25
+    assert metric(fresh, "Result").startswith("7.25")
+
+
+def test_inputs_survive_a_visit_to_another_page():
+    at = AppTest.from_file(str(ROOT / "app" / "Home.py"), default_timeout=60).run()
+    at.switch_page("pages/7_Decision_rules.py").run()
+    at.number_input(key="dec_value").set_value(9.9).run()
+    at.switch_page("pages/8_Reports.py").run()
+    at.switch_page("pages/7_Decision_rules.py").run()
+    assert at.session_state["dec_value"] == 9.9
+
+
+def test_save_project_button_in_the_sidebar():
+    at = run(EMISSIONS)
+    assert "Save project" in [b.label for b in at.get("download_button")]

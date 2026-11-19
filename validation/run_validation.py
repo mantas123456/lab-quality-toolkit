@@ -48,6 +48,8 @@ NOT_VALIDATED = {
     "emissions.register_gas": "configuration; conversions validated via ppm_to_mg_m3",
     "report.*": "records and file output, no calculation; covered by unit tests",
     "proficiency.robust_mean_sd": "no citable reference case yet: see TO_CHECK.md",
+    "control_charts.qc_overview": "groups results and reads westgard's last row; westgard and "
+    "limits_from_data are validated, the grouping is covered by unit tests",
 }
 
 MODELS: dict[str, Callable[..., float]] = {

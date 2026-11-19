@@ -17,6 +17,7 @@ from common import (
     friendly_errors,
     page,
     report_button,
+    tabs,
     what_this_means,
 )
 
@@ -151,7 +152,7 @@ with results:
         x = single[x_col].to_numpy() if x_col else list(range(1, len(values) + 1))
         n_base, limits = series_and_limits(values, x)
 
-    tab_w, tab_c, tab_e = st.tabs(TABS, default=st.session_state.get("qc_tab_default", TABS[0]))
+    tab_w, tab_c, tab_e = tabs(TABS, default=st.session_state.get("qc_tab_default", TABS[0]))
 
     # --- Westgard ------------------------------------------------------------------------
     with tab_w:

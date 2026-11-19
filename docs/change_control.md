@@ -46,6 +46,7 @@ changed functions. The full run takes seconds, so there is no reason to select.
 
 | Version | Date | What changed | How it was tested and validated |
 |---|---|---|---|
+| 1.3.0 | unreleased | `qc_overview`; browser build (stlite) on GitHub Pages; QC overview page, budget templates, project files | 136 reference cases, all passed (`qc_overview` aggregates validated functions; unit tests); 228 unit and app tests (127 library, 101 app and web) |
 | 1.2.0 | unreleased | `conformity` (decision rules, probability of conformance) and `topdown` (Nordtest) modules; Decision rules page and Top-down tab in the app | 136 reference cases across 43 functions, all passed; 191 unit and app tests (115 library, 76 app) |
 | 1.1.0 | unreleased | `monte_carlo_budget`, `compare_with_monte_carlo`, `numerical_tolerance`; correlations in budget records; app deep links, CUSUM/EWMA/multi-level/PT-history tabs, Monte Carlo check, *What this means* boxes | 104 reference cases across 35 functions, all passed; 144 unit and app tests (84 library, 60 app) |
 | 1.0.0 | 2026-11-18 | Validation suite (`validation/`), CI validation job, this change-control page | 91 reference cases across 32 functions, all passed; 97 unit and app tests |

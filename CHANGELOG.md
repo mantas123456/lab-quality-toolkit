@@ -1,5 +1,34 @@
 # Changelog
 
+## 1.3.0 – browser version, QC overview, templates, project file
+
+### Added
+- Browser version of the app: `web/build.py` writes a static stlite site (Streamlit on
+  Pyodide, stlite 1.12.0 with Streamlit 1.65 and Python 3.14) that loads the same `app/`
+  pages and installs labqc from the wheel; the docs workflow builds the wheel and publishes
+  it on GitHub Pages under `/app/`. PDF reports are hidden there (no reportlab); Excel and
+  JSON work. The Streamlit Cloud app is unchanged.
+- `labqc.control_charts.qc_overview(data, baseline, method)`: the Westgard status of the
+  latest run for every method and control level, with the rules broken and the limits used.
+- *QC overview* page: one CSV (date, method, level, value, optional target and sd) as a grid
+  coloured accept / warning / reject; a cell shows its chart and opens the series in QC
+  charts. Example link `?example=qc-overview`.
+- Budget templates on the Uncertainty page: weighing on a balance, volumetric dilution,
+  oven-dry moisture, O₂ reference correction. Each row has a *source* column saying where the
+  number usually comes from; sensitivity coefficients come from `propagate`.
+- Project files: *Save project* / *Open a project* in the sidebar of every page; one
+  versioned `.labqc.json` with every page's inputs (edits included) and the report records,
+  checked before loading (`app/project.py`). Inputs now survive moving between pages.
+- Tests: QC overview, templates, project round trip and schema check, inputs across pages,
+  the browser build; a Playwright smoke test for the browser build that runs when
+  `LABQC_WEB_URL` is set (228 tests).
+
+### Changed
+- Pages renumbered for the menu order (QC overview after QC charts); page addresses are
+  unchanged. Example links are relative, so they work on both hosts.
+- On Streamlit versions without `st.tabs(default=...)`, deep links open the first tab.
+- Version 1.3.0.
+
 ## 1.2.0 – decision rules and top-down uncertainty
 
 ### Added

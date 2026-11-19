@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>labqc app (in your browser)</title>
+    <link rel="stylesheet" href="{{STLITE}}/stlite.css" />
+    <style>
+      body { margin: 0; font-family: system-ui, sans-serif; }
+      #banner { padding: 0.4rem 1rem; font-size: 0.85rem; color: #444; background: #f3f6f8;
+                border-bottom: 1px solid #dde3e8; }
+    </style>
+  </head>
+  <body>
+    <div id="banner">
+      labqc runs in your browser (Pyodide): the first visit downloads Python and its packages
+      and can take a minute; your data never leaves this computer. Prefer a server? Use the
+      <a href="https://lab-quality-toolkit-3go33hyzzwjhwpktn8tles.streamlit.app">Streamlit
+      Cloud version</a>. Built with stlite {{STLITE_VERSION}}.
+    </div>
+    <div id="root"></div>
+    <script type="application/json" id="labqc-config">
+{{CONFIG}}
+    </script>
+    <script type="module">
+      import { mount } from "{{STLITE}}/stlite.js";
+
+      const cfg = JSON.parse(document.getElementById("labqc-config").textContent);
+      const base = new URL(".", window.location.href);
+      const files = {};
+      for (const [path, entry] of Object.entries(cfg.files)) {
+        files[path] = { url: new URL(entry.url, base).href };
+      }
+      mount(
+        {
+          entrypoint: cfg.entrypoint,
+          files,
+          requirements: [...cfg.requirements, new URL(cfg.wheel, base).href],
+        },
+        document.getElementById("root"),
+      );
+    </script>
+  </body>
+</html>

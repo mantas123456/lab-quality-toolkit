@@ -15,7 +15,9 @@ from common import (
     footer,
     friendly_errors,
     page,
+    remember,
     report_button,
+    tabs,
     what_this_means,
 )
 
@@ -83,7 +85,7 @@ if "pt_table" not in st.session_state:
 if "pt_hist_table" not in st.session_state:
     load_history()
 
-tab_scores, tab_history = st.tabs(TABS, default=st.session_state.get("pt_tab_default", TABS[0]))
+tab_scores, tab_history = tabs(TABS, default=st.session_state.get("pt_tab_default", TABS[0]))
 
 with tab_scores:
     inputs, results = columns()
@@ -109,6 +111,7 @@ with tab_scores:
             width="stretch",
             height=300,
         )
+        remember("pt_table", round_table)
 
     def badge(label: str) -> str:
         return f":{CLASS_COLOURS[label]}[**{label}**]"
@@ -237,6 +240,7 @@ with tab_history:
             width="stretch",
             height=400,
         )
+        remember("pt_hist_table", hist_table)
         st.file_uploader(
             "Or upload a CSV with columns date and z",
             type="csv",

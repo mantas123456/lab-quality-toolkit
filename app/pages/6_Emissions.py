@@ -14,6 +14,7 @@ from common import (
     footer,
     friendly_errors,
     page,
+    remember,
     report_button,
     what_this_means,
 )
@@ -36,7 +37,7 @@ def load_example() -> None:
     st.session_state.em_version = st.session_state.get("em_version", 0) + 1
 
 
-deep_link("pages/5_Emissions.py", {"boiler": load_example})
+deep_link("pages/6_Emissions.py", {"boiler": load_example})
 if "em_table" not in st.session_state:
     load_example()
 
@@ -71,6 +72,7 @@ with inputs:
             "unit": st.column_config.SelectboxColumn("unit", options=list(UNITS), default="ppm"),
         },
     )
+    remember("em_table", readings)
 
 with results:
     st.subheader("Results")

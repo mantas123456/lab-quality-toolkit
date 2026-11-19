@@ -1,7 +1,7 @@
 """Calculations for laboratory quality work: uncertainty, validation, PT, IQC, emissions,
 decision rules and top-down uncertainty."""
 
-__version__ = "1.2.0"
+__version__ = "1.3.0"
 
 from . import (  # noqa: E402
     conformity,

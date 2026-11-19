@@ -36,6 +36,220 @@
     "unit": "µg/L",
     "what": "lead in drinking water against a limit of 10 µg/L (illustrative values)"
   },
+  "templates": {
+    "weighing": {
+      "title": "Weighing on a balance",
+      "y": 25.4312,
+      "unit": "g",
+      "note": "One weighing of about 25 g on a 0.1 mg balance.",
+      "rows": [
+        {
+          "name": "Calibration certificate",
+          "value": 0.0002,
+          "distribution": "normal",
+          "k": 2.0,
+          "sensitivity": 1.0,
+          "dof": null,
+          "unit": "g",
+          "source": "U at this load from the balance calibration certificate, with its k"
+        },
+        {
+          "name": "Resolution (d = 0.1 mg)",
+          "value": 5e-05,
+          "distribution": "rectangular",
+          "k": 1.0,
+          "sensitivity": 1.0,
+          "dof": null,
+          "unit": "g",
+          "source": "half the display step, d / 2"
+        },
+        {
+          "name": "Repeatability",
+          "value": 8e-05,
+          "distribution": "normal",
+          "k": 1.0,
+          "sensitivity": 1.0,
+          "dof": 9,
+          "unit": "g",
+          "source": "SD of 10 weighings of a check weight; dof = n - 1"
+        },
+        {
+          "name": "Eccentricity",
+          "value": 0.0001,
+          "distribution": "rectangular",
+          "k": 1.0,
+          "sensitivity": 1.0,
+          "dof": null,
+          "unit": "g",
+          "source": "largest off-centre difference in the calibration or your own check"
+        },
+        {
+          "name": "Drift between calibrations",
+          "value": 0.0001,
+          "distribution": "rectangular",
+          "k": 1.0,
+          "sensitivity": 1.0,
+          "dof": null,
+          "unit": "g",
+          "source": "change between the last two certificates or the daily check-weight record"
+        }
+      ]
+    },
+    "dilution": {
+      "title": "Volumetric dilution",
+      "y": 10.0,
+      "unit": "mg/L",
+      "note": "c = c0 x V1 / V2: 1000 mg/L stock, 1 mL into 100 mL.",
+      "rows": [
+        {
+          "name": "Stock standard",
+          "value": 5.0,
+          "distribution": "normal",
+          "k": 2.0,
+          "sensitivity": 0.009999999999621423,
+          "dof": null,
+          "unit": "mg/L",
+          "source": "certificate of the stock solution: U with its k"
+        },
+        {
+          "name": "Pipette 1 mL (class A)",
+          "value": 0.008,
+          "distribution": "triangular",
+          "k": 1.0,
+          "sensitivity": 9.999999998733244,
+          "dof": null,
+          "unit": "mL",
+          "source": "tolerance printed on the pipette (± mL), triangular as Eurachem suggests"
+        },
+        {
+          "name": "Pipetting repeatability",
+          "value": 0.002,
+          "distribution": "normal",
+          "k": 1.0,
+          "sensitivity": 9.999999998733244,
+          "dof": 9,
+          "unit": "mL",
+          "source": "SD of 10 weighed deliveries of water; dof = n - 1"
+        },
+        {
+          "name": "Flask 100 mL (class A)",
+          "value": 0.1,
+          "distribution": "triangular",
+          "k": 1.0,
+          "sensitivity": -0.10000000000509603,
+          "dof": null,
+          "unit": "mL",
+          "source": "tolerance printed on the flask (± mL)"
+        },
+        {
+          "name": "Temperature (± 4 °C)",
+          "value": 0.084,
+          "distribution": "rectangular",
+          "k": 1.0,
+          "sensitivity": -0.10000000000509603,
+          "dof": null,
+          "unit": "mL",
+          "source": "flask volume x expansion of water (2.1e-4 /°C) x the lab's temperature range"
+        }
+      ]
+    },
+    "moisture": {
+      "title": "Oven-dry moisture",
+      "y": 6.971475974730401,
+      "unit": "%",
+      "note": "M = (m2 - m3) / (m2 - m1) x 100, as in examples/moisture_uncertainty.py.",
+      "rows": [
+        {
+          "name": "Weighing m1",
+          "value": 0.0010408329997330663,
+          "distribution": "normal",
+          "k": 1.0,
+          "sensitivity": 0.05560809755813136,
+          "dof": null,
+          "unit": "g",
+          "source": "balance calibration and resolution combined for this weighing (see Weighing on a balance)"
+        },
+        {
+          "name": "Weighing m2",
+          "value": 0.0010408329997330663,
+          "distribution": "normal",
+          "k": 1.0,
+          "sensitivity": 0.7420436157821623,
+          "dof": null,
+          "unit": "g",
+          "source": "balance calibration and resolution combined for this weighing (see Weighing on a balance)"
+        },
+        {
+          "name": "Weighing m3",
+          "value": 0.0010408329997330663,
+          "distribution": "normal",
+          "k": 1.0,
+          "sensitivity": -0.7976517133418558,
+          "dof": null,
+          "unit": "g",
+          "source": "balance calibration and resolution combined for this weighing (see Weighing on a balance)"
+        },
+        {
+          "name": "Repeatability (5 test portions)",
+          "value": 0.01913112646970889,
+          "distribution": "normal",
+          "k": 1.0,
+          "sensitivity": 1.0,
+          "dof": 4,
+          "unit": "%",
+          "source": "SD of the test portions / sqrt(n); dof = n - 1"
+        }
+      ]
+    },
+    "o2": {
+      "title": "O2 reference correction",
+      "y": 538.2716049382716,
+      "unit": "mg/m3",
+      "note": "C_ref = C (20.9 - 10) / (20.9 - O2): CO 400 mg/m3 at 12.8 % O2, to 10 % O2.",
+      "rows": [
+        {
+          "name": "Analyser calibration",
+          "value": 8.0,
+          "distribution": "normal",
+          "k": 2.0,
+          "sensitivity": 1.3456790124166675,
+          "dof": null,
+          "unit": "mg/m3",
+          "source": "span-gas certificate and calibration: U as 2 % of the reading, with its k"
+        },
+        {
+          "name": "Lack of fit and drift",
+          "value": 8.0,
+          "distribution": "rectangular",
+          "k": 1.0,
+          "sensitivity": 1.3456790124166675,
+          "dof": null,
+          "unit": "mg/m3",
+          "source": "QAL or monthly check: largest deviation, as a half-width"
+        },
+        {
+          "name": "Repeatability of the reading",
+          "value": 4.0,
+          "distribution": "normal",
+          "k": 1.0,
+          "sensitivity": 1.3456790124166675,
+          "dof": 9,
+          "unit": "mg/m3",
+          "source": "SD of 10 one-minute means at steady load; dof = n - 1"
+        },
+        {
+          "name": "O2 analyser",
+          "value": 0.2,
+          "distribution": "normal",
+          "k": 2.0,
+          "sensitivity": 66.45328456400534,
+          "dof": null,
+          "unit": "% O2",
+          "source": "O2 analyser calibration: U in % O2 by volume, with its k"
+        }
+      ]
+    }
+  },
   "topdown_crm": {
     "results": [
       50.9,

@@ -315,3 +315,20 @@ def topdown(table, relative: bool, expanded: float, k: float, source: str) -> li
         f"and the {source} samples, measured with this method."
     )
     return [first, second]
+
+
+def qc_overview(overview) -> list[str]:
+    """For labqc.control_charts.qc_overview: which series need action today."""
+    n = len(overview)
+    rejects = overview[overview["status"] == "reject"]
+    warnings = overview[overview["status"] == "warning"]
+    if rejects.empty and warnings.empty:
+        return [f"All {n} series are in control at their latest run."]
+    parts = []
+    if len(rejects):
+        names = [f"{m} / {lv} ({r})" for m, lv, r in rejects[["method", "level", "rules"]].values]
+        parts.append(f"Rejected at the latest run: {_join(names)}; do not report results from it.")
+    if len(warnings):
+        names = [f"{m} / {lv}" for m, lv in warnings[["method", "level"]].values]
+        parts.append(f"Warning only (1_2s): {_join(names)}; check, no action on its own.")
+    return parts

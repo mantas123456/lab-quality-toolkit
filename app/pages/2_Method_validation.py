@@ -15,6 +15,7 @@ from common import (
     friendly_errors,
     page,
     parse_numbers,
+    remember,
     report_button,
     what_this_means,
 )
@@ -58,6 +59,7 @@ with inputs:
         num_rows="dynamic",
         width="stretch",
     )
+    remember("val_table", cal_table)
     c1, c2 = st.columns(2)
     weights = c1.selectbox("Weighting", ["none", "1/x", "1/x^2"], key="val_weights")
     blank_sd = c2.number_input(

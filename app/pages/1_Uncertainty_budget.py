@@ -19,7 +19,9 @@ from common import (
     friendly_errors,
     page,
     parse_numbers,
+    remember,
     report_button,
+    tabs,
     what_this_means,
 )
 
@@ -60,6 +62,21 @@ def load_example() -> None:
     st.session_state.unc_coverage = 0.95
     st.session_state.unc_k = 0.0
     st.session_state.unc_corr = correlation_frame(None)
+    st.session_state.pop("unc_template_loaded", None)
+    st.session_state.unc_version = st.session_state.get("unc_version", 0) + 1
+
+
+def load_template() -> None:
+    """Start a budget from a template; its 'source' column says where each number comes from."""
+    key = st.session_state.unc_template
+    template = examples()["templates"][key]
+    st.session_state.unc_table = pd.DataFrame(template["rows"])
+    st.session_state.unc_y = template["y"]
+    st.session_state.unc_unit = template["unit"]
+    st.session_state.unc_coverage = 0.95
+    st.session_state.unc_k = 0.0
+    st.session_state.unc_corr = correlation_frame(None)
+    st.session_state.unc_template_loaded = key
     st.session_state.unc_version = st.session_state.get("unc_version", 0) + 1
 
 
@@ -136,7 +153,7 @@ st.session_state.setdefault("unc_corr", correlation_frame(None))
 if "td_qc" not in st.session_state:
     load_topdown()
 
-tab_budget, tab_topdown = st.tabs(TABS, default=st.session_state.get("unc_tab_default", TABS[0]))
+tab_budget, tab_topdown = tabs(TABS, default=st.session_state.get("unc_tab_default", TABS[0]))
 
 with tab_budget:
     inputs, results = columns()
@@ -144,6 +161,21 @@ with tab_budget:
     with inputs:
         st.subheader("Inputs")
         st.button("Load example data", on_click=load_example)
+        templates = examples()["templates"]
+        c1, c2 = st.columns([2, 1], vertical_alignment="bottom")
+        c1.selectbox(
+            "Start from a template",
+            list(templates),
+            format_func=lambda key: templates[key]["title"],
+            key="unc_template",
+        )
+        c2.button("Load template", on_click=load_template)
+        loaded = st.session_state.get("unc_template_loaded")
+        if loaded:
+            st.caption(
+                f"Template: {templates[loaded]['title']}. {templates[loaded]['note']} Replace "
+                "the numbers with your own; the source column says where each usually comes from."
+            )
         c1, c2 = st.columns(2)
         y = c1.number_input("Measured value y", key="unc_y", format="%.4f")
         unit = c2.text_input("Unit of y", key="unc_unit")
@@ -166,8 +198,12 @@ with tab_budget:
                 "distribution": st.column_config.SelectboxColumn(
                     "distribution", options=list(DIVISORS), default="normal"
                 ),
+                "source": st.column_config.TextColumn(
+                    "source", help="Where this number usually comes from (not used in the sums)"
+                ),
             },
         )
+        remember("unc_table", table)
         st.file_uploader(
             f"Or upload a CSV with columns {', '.join(TABLE_COLUMNS)}",
             type="csv",
@@ -201,6 +237,7 @@ with tab_budget:
                     ),
                 },
             )
+            remember("unc_corr", corr_table)
 
     with results:
         st.subheader("Results")
@@ -349,6 +386,7 @@ with tab_topdown:
             key=f"td_qc_editor_{st.session_state.td_version}",
             num_rows="dynamic", width="stretch", height=220,
         )  # fmt: skip
+        remember("td_qc", qc_table)
         st.file_uploader(
             "Or upload a CSV with a value column", type="csv", key="td_qc_upload",
             on_change=load_td_upload, args=("td_qc_upload", "td_qc"),
@@ -363,6 +401,7 @@ with tab_topdown:
                 key=f"td_dup_editor_{st.session_state.td_version}",
                 num_rows="dynamic", width="stretch",
             )  # fmt: skip
+            remember("td_dup", dup_table)
         st.markdown("**Bias**")
         source = st.radio("Bias from", TD_SOURCES, key="td_source", horizontal=True)
         if source == "PT rounds":
@@ -372,6 +411,7 @@ with tab_topdown:
                 key=f"td_pt_editor_{st.session_state.td_version}",
                 num_rows="dynamic", width="stretch",
             )  # fmt: skip
+            remember("td_pt", pt_table)
             st.file_uploader(
                 "Or upload a CSV with columns result, assigned, u_assigned", type="csv",
                 key="td_pt_upload", on_change=load_td_upload, args=("td_pt_upload", "td_pt"),

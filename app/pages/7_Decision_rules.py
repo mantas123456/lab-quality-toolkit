@@ -18,7 +18,7 @@ from common import (
 from labqc.conformity import RULES, decide
 from labqc.report import RunRecord
 
-PAGE = "pages/6_Decision_rules.py"
+PAGE = "pages/7_Decision_rules.py"
 OUTCOME_COLOURS = {
     "pass": "#2e7d32",
     "conditional pass": "#7cb342",

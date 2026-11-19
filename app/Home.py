@@ -36,17 +36,22 @@ pages = [
         "Westgard rules for one or several levels, CUSUM and EWMA charts.",
     ),
     (
-        "pages/5_Emissions.py",
+        "pages/5_QC_overview.py",
+        "QC overview",
+        "Every method and control level in one grid: the Westgard status of the latest run.",
+    ),
+    (
+        "pages/6_Emissions.py",
         "Emissions",
         "ppm to mg/m3, dry, standard conditions, reference O2, and % of the limit.",
     ),
     (
-        "pages/6_Decision_rules.py",
+        "pages/7_Decision_rules.py",
         "Decision rules",
         "Pass or fail with uncertainty: simple acceptance or a guard band (ILAC G8).",
     ),
     (
-        "pages/7_Reports.py",
+        "pages/8_Reports.py",
         "Reports",
         "PDF, Excel and JSON records of your results; reload a saved budget.",
     ),
@@ -57,6 +62,12 @@ for i, (path, label, text) in enumerate(pages):
         with st.container(border=True):
             st.page_link(path, label=f"**{label}**")
             st.caption(text)
+
+st.caption(
+    "This app also runs entirely in your browser, with no server: "
+    "[labqc in your browser](https://mantas123456.github.io/lab-quality-toolkit/app/). "
+    "Use *Save project* in the sidebar to keep your inputs in one file."
+)
 
 st.subheader("Open an example directly")
 st.markdown(

@@ -213,3 +213,79 @@ def ewma(
     out = pd.DataFrame({"value": x, "ewma": smoothed, "lcl": target - width, "ucl": target + width})
     out["signal"] = (out["ewma"] > out["ucl"]) | (out["ewma"] < out["lcl"])
     return out
+
+
+OVERVIEW_COLUMNS = (
+    "method", "level", "n", "limits_from", "baseline_n", "centre", "sd", "last_date",
+    "last_value", "last_z", "status", "rules", "warnings", "rejects",
+)  # fmt: skip
+
+
+def qc_overview(
+    data: pd.DataFrame,
+    baseline: int = 20,
+    method: str = "sd",
+    date_col: str = "date",
+    value_col: str = "value",
+) -> pd.DataFrame:
+    """Westgard status of the latest run for every method and control level in one table.
+
+    `data` has one row per control result with columns method, level, date and value,
+    and optionally target and sd. A series with a target and sd is checked against them
+    from its first result; otherwise its first `baseline` results set the limits
+    (`limits_from_data` with `method`) and the rest are checked. Rules are applied to each
+    series on its own (see `westgard_levels` for rules across levels).
+
+    Returns one row per series, in order of first appearance: method, level, n,
+    limits_from, baseline_n, centre, sd, last_date, last_value, last_z, status (of the
+    latest run: accept, warning or reject), rules (broken at the latest run), and the
+    number of warnings and rejects among the checked runs.
+    """
+    needed = {"method", "level", date_col, value_col}
+    missing = sorted(needed - set(data.columns))
+    if missing:
+        raise ValueError(f"The QC table needs the column(s): {', '.join(missing)}")
+    rows = data.dropna(subset=["method", "level", value_col])
+    if rows.empty:
+        raise ValueError("The QC table has no results")
+    has_limits = {"target", "sd"} <= set(rows.columns)
+    out = []
+    for (name, level), series in rows.groupby(["method", "level"], sort=False):
+        series = series.sort_values(date_col, kind="stable")
+        values = pd.to_numeric(series[value_col], errors="raise").to_numpy()
+        target = series["target"].dropna() if has_limits else pd.Series(dtype=float)
+        sd = series["sd"].dropna() if has_limits else pd.Series(dtype=float)
+        if len(target) and len(sd):
+            limits, n_base, source = Limits(float(target.iloc[0]), float(sd.iloc[0])), 0, "target"
+        else:
+            if len(values) <= baseline:
+                raise ValueError(
+                    f"{name} / {level}: {len(values)} results; needs more than the {baseline} "
+                    "baseline results, or a target and sd"
+                )
+            limits = limits_from_data(values[:baseline], method)
+            n_base, source = baseline, f"first {baseline} results"
+        if not limits.sd > 0:
+            raise ValueError(f"{name} / {level}: the SD must be greater than 0")
+        table = westgard(values[n_base:], limits)
+        last = table.iloc[-1]
+        broken = [r for r in ("1_2s", *REJECT_RULES) if bool(last[r])]
+        out.append(
+            {
+                "method": name,
+                "level": level,
+                "n": len(values),
+                "limits_from": source,
+                "baseline_n": n_base,
+                "centre": limits.centre,
+                "sd": limits.sd,
+                "last_date": series[date_col].iloc[-1],
+                "last_value": float(last["value"]),
+                "last_z": float(last["z"]),
+                "status": last["status"],
+                "rules": ", ".join(broken),
+                "warnings": int((table["status"] == "warning").sum()),
+                "rejects": int((table["status"] == "reject").sum()),
+            }
+        )
+    return pd.DataFrame(out, columns=list(OVERVIEW_COLUMNS))

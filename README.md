@@ -6,7 +6,8 @@
 [![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://lab-quality-toolkit-3go33hyzzwjhwpktn8tles.streamlit.app)
 
 **Try it in the browser:** [the labqc web app](https://lab-quality-toolkit-3go33hyzzwjhwpktn8tles.streamlit.app) runs every module with example data,
-no installation needed.
+no installation needed. A second copy, [labqc in your browser](https://mantas123456.github.io/lab-quality-toolkit/app/), runs Python inside the
+browser itself (stlite): it never sleeps, and your data never leaves your computer.
 
 The calculations an ISO/IEC 17025 laboratory does every week, usually in spreadsheets,
 written as small, tested Python functions:
@@ -23,7 +24,7 @@ written as small, tested Python functions:
 | `topdown` | Top-down uncertainty: u(Rw) from QC data (plus duplicates), u(bias) from PT rounds or a CRM, u_c and U | Nordtest TR 537 |
 | `report` | Run records (inputs, settings, result, method, labqc version, UTC time, analyst) saved as JSON and reloaded; Excel workbook and one-page PDF reports | ISO/IEC 17025 7.5 (technical records) |
 
-Every function is tested against hand-calculated values or textbook worked examples (115 library tests, plus 76 for the web app),
+Every function is tested against hand-calculated values or textbook worked examples (127 library tests, plus 101 for the web app and its browser build),
 and the examples below run in CI.
 <!-- --8<-- [end:modules] -->
 
@@ -153,15 +154,21 @@ and `ewma()` cover two- and three-level QC and small shifts that Westgard rules 
 ## Web app
 
 A Streamlit app puts every module in the browser, for analysts who do not write Python.
-It runs online at **[lab-quality-toolkit-3go33hyzzwjhwpktn8tles.streamlit.app](https://lab-quality-toolkit-3go33hyzzwjhwpktn8tles.streamlit.app)**.
+It runs in two places, from the same `app/` code:
+
+| Version | Where | Good for |
+|---|---|---|
+| Streamlit Community Cloud | **[lab-quality-toolkit-3go33hyzzwjhwpktn8tles.streamlit.app](https://lab-quality-toolkit-3go33hyzzwjhwpktn8tles.streamlit.app)** | Every feature, including PDF reports. Sleeps when unused and takes about 30 s to wake. |
+| In your browser (stlite) | **[mantas123456.github.io/lab-quality-toolkit/app](https://mantas123456.github.io/lab-quality-toolkit/app/)** | Never sleeps; Python runs on your computer, so no data is uploaded anywhere. The first visit downloads Python and takes about a minute. No PDF reports (Excel and JSON work). |
 Each page opens with the worked examples above already loaded, so the app and the library
 can be checked against each other:
 
 | Page | What it does |
 |---|---|
-| Uncertainty budget | Edit or upload (CSV) the components and optional correlations between them; result card y ± U with k and v_eff; budget table and a chart of each component's share of variance; *Check with Monte Carlo* compares the GUM interval with a JCGM 101 Monte Carlo interval; a *Top-down* tab builds U from QC data and PT rounds or a CRM (Nordtest TR 537) |
+| Uncertainty budget | Start from a template (weighing, volumetric dilution, oven-dry moisture, O₂ reference correction, each with where its numbers usually come from) or edit or upload (CSV) the components and optional correlations between them; result card y ± U with k and v_eff; budget table and a chart of each component's share of variance; *Check with Monte Carlo* compares the GUM interval with a JCGM 101 Monte Carlo interval; a *Top-down* tab builds U from QC data and PT rounds or a CRM (Nordtest TR 537) |
 | Method validation | Calibration line (ordinary or weighted) with residual plot and lack-of-fit test, LOD/LOQ, precision, recovery |
 | Proficiency testing | z, zeta and E<sub>n</sub> with coloured status; robust mean and SD of a round (Algorithm A); a *PT history* tab with your z-scores over rounds and the warning signals marked |
+| QC overview | One CSV with several methods and control levels: a grid coloured accept / warning / reject by the latest run, with the rule broken; click a cell for its chart or open the series in QC charts |
 | QC charts | CSV of control results; tabs for Westgard (Levey-Jennings chart, or the rules across two or three control levels), CUSUM and EWMA |
 | Emissions | ppm or mg/m³ (standard or actual conditions), wet or dry, corrected to reference O₂, % of the limit |
 | Decision rules | Result, U and limits; simple acceptance or a guard band; the decision, the probability of conformance, a picture of the result against the limits and guard bands, and suggested report wording |
@@ -191,6 +198,17 @@ example loaded:
 | [`?example=decision-guarded`](https://lab-quality-toolkit-3go33hyzzwjhwpktn8tles.streamlit.app/Decision_rules?example=decision-guarded) | The same result with a guard band w = U |
 
 An unknown name shows a warning and the page opens with its usual example.
+(`?example=qc-overview` opens the QC overview: [link](https://lab-quality-toolkit-3go33hyzzwjhwpktn8tles.streamlit.app/QC_overview?example=qc-overview).)
+
+**Project files.** *Save project* in the sidebar of every page downloads one `.labqc.json` file
+with the inputs of every page and the report records; *Open a project* loads it back. The file
+is versioned and checked before anything is loaded, so a damaged or foreign file is refused
+with a plain message and the session stays as it was. Results are not stored: labqc calculates
+them again from the inputs.
+
+**Browser build.** `python -m build --wheel && python web/build.py --wheel dist/labqc-*.whl
+--out site/app` writes the stlite version; the docs workflow publishes it under `/app/` on
+GitHub Pages with every push to main.
 
 Run it on your PC:
 
