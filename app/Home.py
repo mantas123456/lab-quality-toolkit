@@ -18,7 +18,7 @@ pages = [
     (
         "pages/1_Uncertainty_budget.py",
         "Uncertainty budget",
-        "GUM budget with correlations, k from v_eff, U, and a Monte Carlo check.",
+        "GUM budget with correlations and a Monte Carlo check; top-down from QC and PT data.",
     ),
     (
         "pages/2_Method_validation.py",
@@ -41,7 +41,12 @@ pages = [
         "ppm to mg/m3, dry, standard conditions, reference O2, and % of the limit.",
     ),
     (
-        "pages/6_Reports.py",
+        "pages/6_Decision_rules.py",
+        "Decision rules",
+        "Pass or fail with uncertainty: simple acceptance or a guard band (ILAC G8).",
+    ),
+    (
+        "pages/7_Reports.py",
         "Reports",
         "PDF, Excel and JSON records of your results; reload a saved budget.",
     ),

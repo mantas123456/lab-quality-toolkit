@@ -112,3 +112,28 @@ def test_emissions_wording():
     text = explain.emissions(table, 1.346, 10.0)
     assert "diluted and are multiplied by 1.346" in text[0]
     assert text[1] == "Above the limit after correction: CO (104 %)."
+
+
+def test_decision_wording():
+    text = explain.decision("pass", "simple", 0.857, 0.0)
+    assert (
+        text[0]
+        == "Under simple acceptance the result passes: it lies inside the acceptance limits."
+    )
+    assert "85.7%" in text[1] and "can be wrong" in text[1]
+    sure = explain.decision("pass", "simple", 0.999, 0.0)
+    assert "can be wrong" not in sure[1]
+    assert (
+        "no decision can be stated" in explain.decision("no clear decision", "guarded", 0.6, 1.5)[0]
+    )
+
+
+def test_topdown_wording():
+    table = pd.DataFrame({"term": ["u(Rw)", "bias"], "share_of_variance": [0.24, 0.76]})
+    text = explain.topdown(table, False, 2.6, 2.0, "PT")
+    assert text[0].startswith("The bias terms give 76% of u_c²")
+    assert text[1].startswith("U = 2.6 (k = 2)")
+    table["share_of_variance"] = [0.8, 0.2]
+    assert (
+        "Within-lab reproducibility gives 80%" in explain.topdown(table, True, 5.1, 2.0, "CRM")[0]
+    )

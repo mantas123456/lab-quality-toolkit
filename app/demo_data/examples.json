@@ -28,6 +28,25 @@
       "added": 10.0
     }
   },
+  "decision": {
+    "value": 9.2,
+    "U": 1.5,
+    "k": 2.0,
+    "upper": 10.0,
+    "unit": "µg/L",
+    "what": "lead in drinking water against a limit of 10 µg/L (illustrative values)"
+  },
+  "topdown_crm": {
+    "results": [
+      50.9,
+      51.4,
+      50.2,
+      51.8,
+      50.7
+    ],
+    "certified": 50.0,
+    "u": 0.4
+  },
   "pt": {
     "x": 10.75,
     "assigned": 10.0,

@@ -66,6 +66,18 @@ EXAMPLES: dict[str, tuple[str, str, str]] = {
         "pages/5_Emissions.py", "Emissions",
         "boiler test corrected to 10 % O2 (examples/boiler_emissions.py)",
     ),
+    "topdown": (
+        "pages/1_Uncertainty_budget.py", "Uncertainty budget",
+        "top-down uncertainty from the QC series and six PT rounds (Nordtest TR 537)",
+    ),
+    "decision": (
+        "pages/6_Decision_rules.py", "Decision rules",
+        "lead in water near its limit, simple acceptance",
+    ),
+    "decision-guarded": (
+        "pages/6_Decision_rules.py", "Decision rules",
+        "the same result with a guard band w = U (non-binary statement)",
+    ),
 }  # fmt: skip
 
 

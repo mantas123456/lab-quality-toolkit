@@ -12,6 +12,8 @@ instead, and cases whose numbers are confirmed but whose citation details are no
 | `uncertainty.combine` / `propagate` | GUM (JCGM 100:2008) Annex H.1, end-gauge calibration: the input estimates, standard uncertainties, degrees of freedom and the published u_c, v_eff and U. A multi-input published budget would strengthen the validation. |
 | `validation.trueness` | A worked example from ERM Application Note 1 (bias against a CRM). The current pass/fail case is a hand calculation of its criterion. |
 | `control_charts.ewma` | Montgomery's EWMA example on the CUSUM data (lambda = 0.1, L = 2.7): at which observation the book's chart first signals. labqc signals at observation 29 (EWMA 10.647 > UCL 10.619); the case was left out because I am not sure whether the book says 28 or 29. |
+| `topdown.*` | The worked examples in Nordtest TR 537 (ed. 4, 2017), for example the ammonium-in-water example: control-sample SD, PT biases and u(Cref), and the published u(Rw), u(bias) and U. The current cases are hand calculations of the formulas. |
+| `conformity.decide` | A numerical example from ILAC G8:09/2019 or JCGM 106:2012 (for example a probability of conformance worked in JCGM 106 Annex). The current cases follow the rule definitions and standard-normal table values. |
 | EN 14181 | labqc has no EN 14181 (QAL2/AST) functions, so there are no cases. |
 
 ## Citations to confirm (values already checked)
@@ -27,6 +29,7 @@ calculation reproduces them, but the edition, section or clause should be confir
 | `control_charts.cusum.csv`, `control_charts.ewma.csv` | Montgomery: edition and example numbers of the tabular CUSUM and EWMA examples (30 observations, target 10, sigma 1). |
 | `uncertainty.monte_carlo.csv` | JCGM 101:2008 9.2.2 and 9.2.3: table numbers for the additive-model intervals (±3.92 normal, ±3.88 rectangular). |
 | `uncertainty.numerical_tolerance.csv`, `uncertainty.compare_with_monte_carlo.csv` | JCGM 101:2008 7.9.2 and 8.2: confirm that delta is taken from the Monte Carlo u(y) and the clause numbers. The values are hand calculations of the stated rule. |
+| `conformity.*.csv` | ILAC G8:09/2019 section numbers for simple acceptance, guarded acceptance/rejection and non-binary statements; JCGM 106:2012 clause for the probability of conformance (cited as 7.2-7.3). |
 | `uncertainty.standard_uncertainty.csv` | JCGM 101:2008 clause for the arcsine (U-shaped) distribution. |
 | `proficiency.*.csv` | ISO 13528:2022 clause numbers for z, zeta, E_n and the action/warning signals (cited as 9.4, 9.6, 9.7, 9.4.2, 9.7.2). |
 | `validation.intermediate_precision.csv` | ISO 5725-2 clause for s_r and s_L from the ANOVA mean squares (cited as 7.4). |

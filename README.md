@@ -19,9 +19,11 @@ written as small, tested Python functions:
 | `proficiency` | z, zeta and E<sub>n</sub> scores with interpretation; robust consensus mean (Algorithm A); z-score history across rounds | ISO 13528, ISO/IEC 17043 |
 | `control_charts` | Shewhart limits; Westgard rules 1<sub>2s</sub>, 1<sub>3s</sub>, 2<sub>2s</sub>, R<sub>4s</sub>, 4<sub>1s</sub>, 10<sub>x</sub>, also across two or three control levels; CUSUM and EWMA charts | Westgard multirule QC; Montgomery, *Introduction to Statistical Quality Control* |
 | `emissions` | ppm ↔ mg/m³ at standard conditions, correction to reference O₂ and its uncertainty, wet ↔ dry, user-defined gases | Stack-emission practice, e.g. EN 303-5 at 10 % O₂ |
+| `conformity` | Decision rules for pass/fail statements with uncertainty: simple acceptance, guarded acceptance and rejection, non-binary statements with a guard band; probability of conformance; suggested report wording | ILAC G8:09/2019, JCGM 106:2012 |
+| `topdown` | Top-down uncertainty: u(Rw) from QC data (plus duplicates), u(bias) from PT rounds or a CRM, u_c and U | Nordtest TR 537 |
 | `report` | Run records (inputs, settings, result, method, labqc version, UTC time, analyst) saved as JSON and reloaded; Excel workbook and one-page PDF reports | ISO/IEC 17025 7.5 (technical records) |
 
-Every function is tested against hand-calculated values or textbook worked examples (84 library tests, plus 60 for the web app),
+Every function is tested against hand-calculated values or textbook worked examples (115 library tests, plus 76 for the web app),
 and the examples below run in CI.
 <!-- --8<-- [end:modules] -->
 
@@ -157,11 +159,12 @@ can be checked against each other:
 
 | Page | What it does |
 |---|---|
-| Uncertainty budget | Edit or upload (CSV) the components and optional correlations between them; result card y ± U with k and v_eff; budget table and a chart of each component's share of variance; *Check with Monte Carlo* compares the GUM interval with a JCGM 101 Monte Carlo interval |
+| Uncertainty budget | Edit or upload (CSV) the components and optional correlations between them; result card y ± U with k and v_eff; budget table and a chart of each component's share of variance; *Check with Monte Carlo* compares the GUM interval with a JCGM 101 Monte Carlo interval; a *Top-down* tab builds U from QC data and PT rounds or a CRM (Nordtest TR 537) |
 | Method validation | Calibration line (ordinary or weighted) with residual plot and lack-of-fit test, LOD/LOQ, precision, recovery |
 | Proficiency testing | z, zeta and E<sub>n</sub> with coloured status; robust mean and SD of a round (Algorithm A); a *PT history* tab with your z-scores over rounds and the warning signals marked |
 | QC charts | CSV of control results; tabs for Westgard (Levey-Jennings chart, or the rules across two or three control levels), CUSUM and EWMA |
 | Emissions | ppm or mg/m³ (standard or actual conditions), wet or dry, corrected to reference O₂, % of the limit |
+| Decision rules | Result, U and limits; simple acceptance or a guard band; the decision, the probability of conformance, a picture of the result against the limits and guard bands, and suggested report wording |
 | Reports | Results added with *Add to report* on any page: one PDF per result, one Excel workbook, JSON records; reload a saved budget into the Uncertainty page |
 
 The app contains no calculations of its own: every number comes from labqc. Bad input shows
@@ -183,6 +186,9 @@ example loaded:
 | [`?example=cusum`](https://lab-quality-toolkit-3go33hyzzwjhwpktn8tles.streamlit.app/QC_charts?example=cusum) | CUSUM chart of the same series |
 | [`?example=ewma`](https://lab-quality-toolkit-3go33hyzzwjhwpktn8tles.streamlit.app/QC_charts?example=ewma) | EWMA chart of the same series |
 | [`?example=boiler`](https://lab-quality-toolkit-3go33hyzzwjhwpktn8tles.streamlit.app/Emissions?example=boiler) | Boiler test at 10 % O₂ (Example 3) |
+| [`?example=topdown`](https://lab-quality-toolkit-3go33hyzzwjhwpktn8tles.streamlit.app/Uncertainty_budget?example=topdown) | Top-down uncertainty from the QC series and six PT rounds |
+| [`?example=decision`](https://lab-quality-toolkit-3go33hyzzwjhwpktn8tles.streamlit.app/Decision_rules?example=decision) | Lead in water near its limit, simple acceptance |
+| [`?example=decision-guarded`](https://lab-quality-toolkit-3go33hyzzwjhwpktn8tles.streamlit.app/Decision_rules?example=decision-guarded) | The same result with a guard band w = U |
 
 An unknown name shows a warning and the page opens with its usual example.
 

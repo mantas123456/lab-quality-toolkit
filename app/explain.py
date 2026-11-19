@@ -258,3 +258,60 @@ def _join(items: list[str]) -> str:
     if len(items) <= 1:
         return "".join(items)
     return ", ".join(items[:-1]) + " and " + items[-1]
+
+
+RULE_NAMES = {
+    "simple": "simple acceptance",
+    "guarded": "guarded acceptance and rejection",
+    "non-binary": "the non-binary rule",
+}
+
+
+def decision(outcome: str, rule: str, probability: float, guard_band: float) -> list[str]:
+    """For a labqc.conformity.Decision: what the outcome means, and its probability."""
+    name = RULE_NAMES[rule]
+    first = {
+        "pass": f"Under {name} the result passes: it lies inside the acceptance limits.",
+        "fail": f"Under {name} the result fails: it lies outside the rejection limits.",
+        "conditional pass": (
+            f"Under {name} the result is a conditional pass: inside the specification, but "
+            f"within the guard band ({guard_band:.3g}) of a limit."
+        ),
+        "conditional fail": (
+            f"Under {name} the result is a conditional fail: outside the specification, but "
+            f"within the guard band ({guard_band:.3g}) of a limit."
+        ),
+        "no clear decision": (
+            f"Under {name} no decision can be stated: the result lies within the guard band "
+            f"({guard_band:.3g}) of a limit."
+        ),
+    }[outcome]
+    second = (
+        f"The probability that the true value is within the specification is {probability:.1%}."
+    )
+    if rule == "simple" and 0.05 < probability < 0.95:
+        second += (
+            " Simple acceptance does not use U, so this close to a limit the decision can be wrong."
+        )
+    return [first, second]
+
+
+def topdown(table, relative: bool, expanded: float, k: float, source: str) -> list[str]:
+    """For a labqc.topdown.TopDownResult: which term dominates, and what U covers."""
+    rw = float(table.iloc[0]["share_of_variance"])
+    unit = " %" if relative else ""
+    if rw >= 0.5:
+        first = (
+            f"Within-lab reproducibility gives {_pct(rw)} of u_c²: day-to-day scatter, not bias, "
+            "sets the uncertainty."
+        )
+    else:
+        first = (
+            f"The bias terms give {_pct(1 - rw)} of u_c²: the {source} results, not "
+            "day-to-day scatter, set the uncertainty."
+        )
+    second = (
+        f"U = {expanded:.3g}{unit} (k = {k:g}) applies to routine results like the control sample "
+        f"and the {source} samples, measured with this method."
+    )
+    return [first, second]

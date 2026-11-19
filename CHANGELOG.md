@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.2.0 – decision rules and top-down uncertainty
+
+### Added
+- `labqc.conformity`: `decide(value, U, lower, upper, rule, guard_band, k, unit)` → `Decision`
+  with the outcome (pass, fail, conditional pass, conditional fail, no clear decision), the
+  acceptance and rejection limits, the probability of conformance and suggested report
+  wording; rules `simple`, `guarded` and `non-binary` (ILAC G8:09/2019);
+  `probability_of_conformance` (JCGM 106, normal or t); `guard_band(U, r)`.
+- `labqc.topdown` (Nordtest TR 537): `u_rw` from a control series (optionally with s_r from
+  duplicates, `s_r_duplicates`), `u_bias_pt` from PT rounds, `u_bias_crm` from a CRM, and
+  `combine_topdown` → `TopDownResult` with u_c, U = k u_c and a share-of-variance table;
+  absolute or relative (%).
+- 32 validation cases (hand calculations and standard-table values); the Nordtest worked
+  examples are listed in `validation/TO_CHECK.md` to add from the printed report.
+- Web app: a *Decision rules* page (decision, probability, a picture of the result with its
+  interval against the limits and guard bands, report wording) and a *Top-down* tab on the
+  Uncertainty page (QC CSV, optional duplicates, PT rounds or CRM). Example links
+  `?example=decision`, `decision-guarded` and `topdown`.
+- Docs pages for both modules, linked to the handbook chapters 7.8 and 7.6.
+
+### Changed
+- The Reports page file is now `app/pages/7_Reports.py`, after Decision rules (its address,
+  `/Reports`, is unchanged).
+- Version 1.2.0.
+
 ## 1.1.0 – the whole library in the app
 
 ### Added

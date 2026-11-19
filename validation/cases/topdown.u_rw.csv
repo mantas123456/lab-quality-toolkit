@@ -1,0 +1,4 @@
+case,inputs,output,expected,tolerance,tolerance_type,source_type,source,working
+control series,"{""qc_values"": [1, 2, 3, 4]}",u_rw,1.290994,1e-6,abs,hand calculation from the cited formula,"Nordtest TR 537 (ed. 4, 2017), u(Rw) and u(bias) formulas","SD (n - 1) of 1, 2, 3, 4 = sqrt(5 / 3)"
+"control series, relative","{""qc_values"": [1, 2, 3, 4], ""relative"": true}",u_rw,51.63978,1e-5,abs,hand calculation from the cited formula,"Nordtest TR 537 (ed. 4, 2017), u(Rw) and u(bias) formulas",100 x 1.290994 / 2.5
+control series plus duplicates,"{""qc_values"": [1, 2, 3, 4], ""s_r"": 1.0}",u_rw,1.632993,1e-6,abs,hand calculation from the cited formula,"Nordtest TR 537 (ed. 4, 2017), u(Rw) and u(bias) formulas",sqrt(5 / 3 + 1)

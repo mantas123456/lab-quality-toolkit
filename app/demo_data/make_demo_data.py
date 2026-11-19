@@ -114,6 +114,18 @@ def build() -> tuple[dict[str, pd.DataFrame], dict]:
         }
     )
 
+    # top-down (Nordtest): the in-control part of the QC series (before the shift on day 45)
+    topdown_qc = pd.DataFrame({"day": qc["day"][:44], "value": qc["value"][:44]})
+    # six PT rounds for the same method (illustrative), with the assigned values' u
+    topdown_pt = pd.DataFrame(
+        {
+            "round": [f"2025-{m:02d}" for m in (2, 4, 6, 8, 10, 12)],
+            "result": [48.9, 52.3, 47.1, 50.6, 55.2, 49.4],
+            "assigned": [48.2, 51.0, 47.9, 50.1, 54.0, 48.6],
+            "u_assigned": [0.6, 0.7, 0.6, 0.6, 0.8, 0.6],
+        }
+    )
+
     # the three weighings share one balance calibration (examples/monte_carlo_vs_gum.py)
     u_cal, u_res = 0.001, 0.0005 / 3**0.5
     r_shared = u_cal**2 / (u_cal**2 + u_res**2)
@@ -132,6 +144,15 @@ def build() -> tuple[dict[str, pd.DataFrame], dict]:
             "replicates": [50.4, 50.7, 49.1, 49.0, 51.1],
             "recovery": {"measured": 14.5, "unspiked": 5.0, "added": 10.0},
         },
+        "decision": {
+            "value": 9.2,
+            "U": 1.5,
+            "k": 2.0,
+            "upper": 10.0,
+            "unit": "µg/L",
+            "what": "lead in drinking water against a limit of 10 µg/L (illustrative values)",
+        },
+        "topdown_crm": {"results": [50.9, 51.4, 50.2, 51.8, 50.7], "certified": 50.0, "u": 0.4},
         "pt": {
             "x": 10.75,
             "assigned": 10.0,
@@ -150,6 +171,8 @@ def build() -> tuple[dict[str, pd.DataFrame], dict]:
         "pt_round": pt_round,
         "qc_levels": qc_levels,
         "pt_history": pt_hist,
+        "topdown_qc": topdown_qc,
+        "topdown_pt": topdown_pt,
     }
     return tables, scalars
 
@@ -159,7 +182,7 @@ def csv_text(df: pd.DataFrame) -> str:
 
 
 def json_text(scalars: dict) -> str:
-    return json.dumps(scalars, indent=2) + "\n"
+    return json.dumps(scalars, indent=2, ensure_ascii=False) + "\n"
 
 
 if __name__ == "__main__":

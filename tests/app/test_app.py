@@ -33,7 +33,7 @@ def test_page_runs_without_errors(path):
     assert not at.error
 
 
-@pytest.mark.parametrize("path", PAGES[:5], ids=lambda p: p.stem)
+@pytest.mark.parametrize("path", PAGES[:6], ids=lambda p: p.stem)
 def test_load_example_button(path):
     at = run(path)
     at.button[0].click().run()
@@ -110,7 +110,7 @@ def _button(at: AppTest, label: str):
     return next(b for b in at.button if b.label == label)
 
 
-@pytest.mark.parametrize("path", PAGES[:5], ids=lambda p: p.stem)
+@pytest.mark.parametrize("path", PAGES[:6], ids=lambda p: p.stem)
 def test_add_to_report_makes_a_record(path):
     at = run(path)
     _button(at, "Add to report").click().run()
@@ -127,7 +127,7 @@ def test_reports_page_with_records_builds_downloads():
     at = run(PAGES[0])
     _button(at, "Add to report").click().run()
     records = [*at.session_state["records"], RunRecord("labqc.proficiency", {"x": 1.0})]
-    at = run(PAGES[5], records=records, analyst="A. Analyst")
+    at = run(PAGES[6], records=records, analyst="A. Analyst")
     assert not at.exception
     assert not at.error
     labels = [b.label for b in at.get("download_button")]
@@ -146,7 +146,7 @@ def test_saved_budget_reloads_into_the_uncertainty_page():
 
     at = AppTest.from_file(str(ROOT / "app" / "Home.py"), default_timeout=60).run()
     at.session_state["report_loaded"] = RunRecord.from_json(saved)
-    at.switch_page("pages/6_Reports.py").run()
+    at.switch_page("pages/7_Reports.py").run()
     _button(at, "Open this budget in Uncertainty budget").click().run()
     assert not at.exception
     assert not at.error
@@ -174,7 +174,8 @@ def explanations(at: AppTest) -> list[str]:
 
 EXAMPLE_NAMES = [
     "moisture", "moisture-shared-balance", "calibration", "pt-round", "pt-history",
-    "westgard", "westgard-levels", "cusum", "ewma", "boiler",
+    "westgard", "westgard-levels", "cusum", "ewma", "boiler", "topdown", "decision",
+    "decision-guarded",
 ]  # fmt: skip
 
 
@@ -298,7 +299,7 @@ def test_monte_carlo_check_on_the_uncertainty_page():
     assert not at.error
     assert metric(at, "Agreement") in ("confirmed", "not confirmed")
     assert "Monte Carlo interval" in [m.label for m in at.metric]
-    assert len(explanations(at)) == 2  # the budget's and the Monte Carlo check's
+    assert len(explanations(at)) == 3  # budget, Monte Carlo check, and the top-down tab
 
 
 def test_correlated_budget_saved_and_reloaded_keeps_its_correlation():
@@ -308,3 +309,89 @@ def test_correlated_budget_saved_and_reloaded_keeps_its_correlation():
     next(b for b in at.button if b.label == "Add to report").click().run()
     _, info = budget_from_record(at.session_state["records"][0])
     assert info["correlation"] and len(info["correlation"]) == 3
+
+
+# --- v1.2: decision rules and top-down uncertainty --------------------------------------
+
+DECISION = ROOT / "app" / "pages" / "6_Decision_rules.py"
+
+
+def test_pages_are_in_menu_order():
+    assert [p.stem for p in PAGES][5:] == ["6_Decision_rules", "7_Reports"]
+
+
+@pytest.mark.parametrize(
+    ("name", "outcome"), [("decision", "pass"), ("decision-guarded", "conditional pass")]
+)
+def test_decision_page_matches_decide(name, outcome):
+    from common import examples
+
+    from labqc.conformity import decide
+
+    ex = examples()["decision"]
+    rule = "simple" if name == "decision" else "non-binary"
+    d = decide(ex["value"], ex["U"], upper=ex["upper"], rule=rule, k=ex["k"], unit=ex["unit"])
+    at = run_example(name)
+    assert metric(at, "Outcome") == outcome == d.outcome
+    assert metric(at, "Probability of conformance") == f"{d.probability:.1%}"
+    assert at.code[0].value == d.wording
+
+
+def test_decision_bad_limits_are_a_plain_error():
+    at = run(DECISION)
+    at.checkbox(key="dec_has_lower").check().run()
+    at.number_input(key="dec_lower").set_value(12.0).run()
+    assert not at.exception
+    assert at.error[0].value == "the lower limit must be below the upper limit"
+
+
+def test_decision_without_limits_is_a_plain_error():
+    at = run(DECISION)
+    at.checkbox(key="dec_has_upper").uncheck().run()
+    assert not at.exception
+    assert at.error[0].value == "give a lower limit, an upper limit or both"
+
+
+def _topdown_expected(source: str = "PT"):
+    from common import examples
+
+    from labqc.topdown import combine_topdown, u_bias_crm, u_bias_pt, u_rw
+
+    demo = ROOT / "app" / "demo_data"
+    qc = pd.read_csv(demo / "topdown_qc.csv")["value"]
+    if source == "PT":
+        pt = pd.read_csv(demo / "topdown_pt.csv")
+        bias = u_bias_pt(pt["result"], pt["assigned"], pt["u_assigned"])
+    else:
+        crm = examples()["topdown_crm"]
+        bias = u_bias_crm(crm["results"], crm["certified"], crm["u"])
+    return combine_topdown(u_rw(qc), bias)
+
+
+def test_topdown_tab_matches_the_library():
+    expected = _topdown_expected()
+    at = run_example("topdown")
+    assert [t.label for t in at.tabs][:2] == ["GUM budget", "Top-down (Nordtest)"]
+    assert metric(at, "u(Rw)") == f"{expected.u_rw:.3g}"
+    assert metric(at, "u(bias)") == f"{expected.u_bias:.3g}"
+    assert metric(at, "U (top-down, k = 2)") == f"{expected.expanded:.3g}"
+
+
+def test_topdown_from_a_crm():
+    expected = _topdown_expected("CRM")
+    at = run_example("topdown")
+    at.radio(key="td_source").set_value("CRM").run()
+    assert not at.exception
+    assert not at.error
+    assert metric(at, "u(bias)") == f"{expected.u_bias:.3g}"
+
+
+def test_topdown_relative_and_add_to_report():
+    at = run_example("topdown")
+    at.toggle(key="td_relative").set_value(True).run()
+    assert not at.exception
+    assert metric(at, "u(Rw)").endswith(" %")
+    next(b for b in at.button if b.key == "td_report").click().run()
+    record = at.session_state["records"][-1]
+    assert record.function == "labqc.topdown.combine_topdown"
+    assert record.settings["relative"] is True

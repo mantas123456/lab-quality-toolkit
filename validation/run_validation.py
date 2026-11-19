@@ -33,9 +33,11 @@ import pandas as pd  # noqa: E402
 import scipy  # noqa: E402
 
 import labqc  # noqa: E402
+from labqc import conformity as cf  # noqa: E402
 from labqc import control_charts as cc  # noqa: E402
 from labqc import emissions as em  # noqa: E402
 from labqc import proficiency as pt  # noqa: E402
+from labqc import topdown as td  # noqa: E402
 from labqc import uncertainty as unc  # noqa: E402
 from labqc import validation as val  # noqa: E402
 
@@ -105,6 +107,25 @@ def _compare_with_monte_carlo(i: dict) -> dict:
     mc = unc.MonteCarloResult(i["mc_mean"], i["mc_u"], i["mc_low"], i["mc_high"], 0.95, np.empty(0))
     a = unc.compare_with_monte_carlo(i["y"], result, mc, n_dig=i["n_dig"])
     return {"d_low": a.d_low, "d_high": a.d_high, "delta": a.delta, "agrees": a.agrees}
+
+
+def _decide(i: dict) -> dict:
+    d = cf.decide(**i)
+    return {
+        "outcome": d.outcome,
+        "acceptance_lower": d.acceptance_lower,
+        "acceptance_upper": d.acceptance_upper,
+        "probability": d.probability,
+    }
+
+
+def _u_bias(b: td.Bias) -> dict:
+    return {"bias": b.bias, "u_ref": b.u_ref, "u_bias": b.u_bias}
+
+
+def _combine_topdown(i: dict) -> dict:
+    r = td.combine_topdown(i["u_rw"], i["u_bias"], k=i.get("k", 2.0))
+    return {"u_c": r.combined, "U": r.expanded}
 
 
 def _linearity(i: dict) -> dict:
@@ -225,6 +246,14 @@ ADAPTERS: dict[str, Callable[[dict], dict]] = {
     "emissions.to_temperature_pressure": lambda i: {"mg_m3_std": em.to_temperature_pressure(**i)},
     "emissions.correct_emission": _correct_emission,
     "emissions.percent_of_limit": lambda i: {"percent": em.percent_of_limit(**i)},
+    "conformity.probability_of_conformance": lambda i: {"p": cf.probability_of_conformance(**i)},
+    "conformity.decide": _decide,
+    "conformity.guard_band": lambda i: {"w": cf.guard_band(**i)},
+    "topdown.u_rw": lambda i: {"u_rw": td.u_rw(**i)},
+    "topdown.s_r_duplicates": lambda i: {"s_r": td.s_r_duplicates(**i)},
+    "topdown.u_bias_pt": lambda i: _u_bias(td.u_bias_pt(**i)),
+    "topdown.u_bias_crm": lambda i: _u_bias(td.u_bias_crm(**i)),
+    "topdown.combine_topdown": _combine_topdown,
     "emissions.corrected_uncertainty": lambda i: {"u_c": em.corrected_uncertainty(**i)[1].combined},
 }
 
@@ -296,7 +325,15 @@ def public_functions() -> list[str]:
     import inspect
 
     names = []
-    for module in ("uncertainty", "validation", "proficiency", "control_charts", "emissions"):
+    for module in (
+        "uncertainty",
+        "validation",
+        "proficiency",
+        "control_charts",
+        "emissions",
+        "conformity",
+        "topdown",
+    ):
         mod = getattr(labqc, module)
         for name, obj in vars(mod).items():
             if name.startswith("_") or not inspect.isfunction(obj):
